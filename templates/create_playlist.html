@@ -3,6 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <title>플레이리스트 만들기</title>
+    <style>
+        .cover-thumb {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        table th, table td {
+            padding: 5px 8px;
+            border: 1px solid #000;
+        }
+    </style>
 </head>
 <body>
     <h1>새 플레이리스트 만들기</h1>
@@ -10,17 +26,19 @@
     <!-- 메인으로 돌아가는 링크 -->
     <p><a href="{{ url_for('index') }}">← 플레이리스트 목록으로 돌아가기</a></p>
 
-    <!-- 곡 검색 폼 (GET) - 별도 폼 -->
+    <!-- 🔍 곡 검색 폼 (GET) - 독립된 폼 -->
     <h2>노래 검색</h2>
     <form method="GET" action="{{ url_for('create_playlist') }}">
-        <input type="text" name="q" placeholder="제목/아티스트/앨범 검색"
+        <input type="text"
+               name="q"
+               placeholder="제목/아티스트/앨범 검색"
                value="{{ search_query or '' }}">
         <button type="submit">검색</button>
     </form>
 
     <br>
 
-    <!-- 플레이리스트 저장 폼 (POST) - 하나로 통합 -->
+    <!-- 🎵 플레이리스트 저장 폼 (POST) -->
     <form method="POST" action="{{ url_for('create_playlist') }}">
         
         <h2>플레이리스트 정보</h2>
@@ -41,10 +59,11 @@
         <h2>노래 선택</h2>
 
         {% if songs and songs|length > 0 %}
-            <table border="1" cellpadding="5" style="width: 100%;">
+            <table>
                 <thead>
                     <tr>
                         <th>선택</th>
+                        <th>커버</th>
                         <th>제목</th>
                         <th>아티스트</th>
                         <th>앨범</th>
@@ -53,9 +72,14 @@
                 <tbody>
                     {% for s in songs %}
                         <tr>
-                            <td>
+                            <td style="text-align:center;">
                                 <!-- 체크박스로 곡 선택, value 는 song_id -->
                                 <input type="checkbox" name="song_ids" value="{{ s['song_id'] }}">
+                            </td>
+                            <td style="text-align:center;">
+                                {% if s['cover_url'] %}
+                                    <img src="{{ s['cover_url'] }}" alt="cover" class="cover-thumb">
+                                {% endif %}
                             </td>
                             <td>{{ s['title'] }}</td>
                             <td>{{ s['artist'] or '-' }}</td>

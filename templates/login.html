@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>로그인 / 회원가입</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 360px;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        input[type="text"],
+        input[type="password"],
+        input[type="email"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .section-title {
+            font-size: 18px;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .link-box {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+
+        <!-- 로그인 -->
+        <h2>🔑 로그인</h2>
+
+        {% if login_error %}
+        <p class="error">{{ login_error }}</p>
+        {% endif %}
+
+        <form method="POST">
+            <input type="hidden" name="action" value="login">
+            <input type="text" name="username" placeholder="아이디" required autofocus>
+            <input type="password" name="password" placeholder="비밀번호" required>
+            <button type="submit">로그인</button>
+        </form>
+
+        <!-- 회원가입 -->
+        <div class="section-title">회원가입</div>
+
+        {% if register_error %}
+        <p class="error">{{ register_error }}</p>
+        {% endif %}
+
+        <form method="POST">
+            <input type="hidden" name="action" value="register">
+            <input type="text" name="new_username" placeholder="아이디" required>
+            <input type="email" name="new_email" placeholder="이메일" required>
+            <input type="password" name="new_password" placeholder="비밀번호" required>
+            <button type="submit" style="background-color: #28a745;">회원가입</button>
+        </form>
+
+        <div class="link-box">
+            <a href="{{ url_for('index') }}">← 메인으로 돌아가기</a><br><br>
+        </div>
+
+    </div>
+</body>
+</html>

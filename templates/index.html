@@ -6,10 +6,27 @@
 </head>
 <body>
     <h1>플레이리스트 목록</h1>
-    <p>
-    <a href="{{ url_for('create_playlist') }}">+ 새 플레이리스트 만들기</a> |
-    <a href="{{ url_for('manage_songs') }}">노래 관리하기 (songs)</a>
-    </p>
+<p>
+    {% if session.get('user_id') %}
+        안녕하세요, <strong>{{ session.get('username') }}</strong>님 |
+        <a href="{{ url_for('logout') }}">로그아웃</a> |
+
+        <!-- 🎵 로그인한 사람만 플레이리스트 만들기 가능 -->
+        <a href="{{ url_for('create_playlist') }}">+ 새 플레이리스트 만들기</a>
+
+    {% else %}
+        <a href="{{ url_for('login') }}">로그인</a> 
+        <!-- 로그인 안 했으면 플레이리스트 만들기 숨김 -->
+    {% endif %}
+
+    {% if session.get('is_admin') %}
+        | <a href="{{ url_for('manage_songs') }}">노래 관리하기</a>
+    {% endif %}
+</p>
+
+
+
+
 
 
     {% if playlists and playlists|length > 0 %}
