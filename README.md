@@ -4,8 +4,8 @@
 ---
 
 ## Team
-- 김준성: 프런트엔드 (UI 설계, HTML/CSS/JS)
-- 이00: 백엔드 및 데이터베이스 (Flask, SQLite3)
+- 김해수: 프런트엔드 (UI 설계, HTML/CSS/JS)
+- 김준성: 백엔드 및 데이터베이스 (Flask, SQLite3)
 
 ---
 
