@@ -3,75 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <title>관리자 로그인</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <style>
-        body {
+        /* 공통 레이아웃 */
+        body.auth-body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            background-color: #f5f5f5;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f5f5f5;
         }
-        .login-box {
-            background: white;
-            padding: 40px;
+
+        /* 로그인 페이지 전체 래퍼 */
+        .auth {
+            width: 100%;
+            max-width: 360px;
+            padding: 16px;
+        }
+
+        /* 박스 */
+        .auth__box {
+            background: #ffffff;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 300px;
+            padding: 32px 28px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }
-        h2 {
+
+        .auth__title {
             text-align: center;
-            margin-bottom: 30px;
+            font-size: 20px;
+            margin: 0 0 24px;
         }
-        input[type="password"] {
+
+        /* 에러 메시지 */
+        .auth__error {
+            color: #e63946;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        /* 폼 영역 */
+        .auth__form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .auth__input {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 20px;
+            padding: 10px 12px;
+            border-radius: 6px;
             border: 1px solid #ddd;
-            border-radius: 5px;
             box-sizing: border-box;
+            font-size: 14px;
         }
-        button {
+
+        .auth__button {
+            margin-top: 8px;
             width: 100%;
             padding: 10px;
-            background-color: #007bff;
-            color: white;
+            border-radius: 6px;
             border: none;
-            border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 15px;
+            font-weight: 600;
+            background-color: #007bff;
+            color: #ffffff;
         }
-        button:hover {
+
+        .auth__button:hover {
             background-color: #0056b3;
         }
-        .error {
-            color: red;
-            text-align: center;
-            margin-bottom: 15px;
-        }
-        .back-link {
-            text-align: center;
+
+        /* 하단 링크 */
+        .auth__footer {
             margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .auth__footer a {
+            text-decoration: none;
+            color: #555;
+        }
+
+        .auth__footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
-<body>
-    <div class="login-box">
-        <h2>🔒 관리자 로그인</h2>
-        
-        {% if error %}
-            <p class="error">{{ error }}</p>
-        {% endif %}
-        
-        <form method="POST">
-            <input type="password" name="password" placeholder="비밀번호를 입력하세요" required autofocus>
-            <button type="submit">로그인</button>
-        </form>
-        
-        <div class="back-link">
-            <a href="{{ url_for('index') }}">← 메인으로 돌아가기</a>
-        </div>
-    </div>
+<body class="auth-body">
+    <main class="auth">
+        <section class="auth__box">
+            <h1 class="auth__title">🔒 관리자 로그인</h1>
+
+            {% if error %}
+                <p class="auth__error">{{ error }}</p>
+            {% endif %}
+
+            <form method="POST" class="auth__form">
+                <input
+                    type="password"
+                    name="password"
+                    class="auth__input"
+                    placeholder="비밀번호를 입력하세요"
+                    required
+                    autofocus
+                >
+                <button type="submit" class="auth__button">
+                    로그인
+                </button>
+            </form>
+
+            <div class="auth__footer">
+                <a href="{{ url_for('index') }}">← 메인으로 돌아가기</a>
+            </div>
+        </section>
+    </main>
 </body>
 </html>

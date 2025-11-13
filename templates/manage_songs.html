@@ -1,161 +1,474 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
     <title>노래 관리</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <style>
+        /* ===== 공통 레이아웃 ===== */
+        body.app-body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .page {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 24px 16px 40px;
+        }
+
+        .page__header {
+            margin-bottom: 16px;
+        }
+
+        .page__title {
+            margin: 0 0 8px;
+            font-size: 24px;
+        }
+
+        .page__nav {
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .page__nav a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .page__nav a:hover {
+            text-decoration: underline;
+        }
+
+        .page__divider {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 16px 0;
+        }
+
+        /* ===== 섹션 공통 ===== */
+        .section {
+            margin-bottom: 28px;
+        }
+
+        .section__title {
+            margin: 0 0 12px;
+            font-size: 18px;
+        }
+
+        .section__description {
+            font-size: 13px;
+            color: #555;
+            margin: 0 0 8px;
+        }
+
+        /* ===== 폼 기본 ===== */
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 520px;
+        }
+
+        .form__group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form__label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form__input,
+        .form__input-text,
+        .form__file {
+            padding: 8px 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form__actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .button {
+            padding: 8px 14px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            background-color: #007bff;
+            color: #ffffff;
+        }
+
+        .button--primary {
+            background-color: #007bff;
+        }
+
+        .button--danger {
+            background-color: #dc3545;
+        }
+
+        .button--small {
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+
+        .button:hover {
+            opacity: 0.93;
+        }
+
+        /* ===== CSV 예시 블록 ===== */
+        .code-block {
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            padding: 8px 10px;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+
+        /* ===== 검색 영역 ===== */
+        .search-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            max-width: 420px;
+        }
+
+        .search-bar__input {
+            flex: 1;
+            min-width: 220px;
+            padding: 8px 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        .search-result-info {
+            font-size: 13px;
+            margin: 4px 0 10px;
+        }
+
+        /* ===== 전체 삭제 폼 ===== */
+        .danger-zone {
+            margin: 12px 0 16px;
+        }
+
+        .danger-zone__note {
+            font-size: 13px;
+            color: #b02a37;
+            margin-top: 4px;
+        }
+
+        /* ===== 테이블 스타일 ===== */
+        .table-wrapper {
+            background-color: #fff;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            overflow-x: auto;
+        }
+
+        .table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .table th,
+        .table td {
+            border: 1px solid #555;
+            padding: 6px 8px;
+            vertical-align: middle;
+        }
+
+        .table thead {
+            background-color: #f0f0f0;
+        }
+
+        .table th:nth-child(1) {
+            width: 50px;
+            text-align: center;
+        }
+
+        .table th:nth-child(2) {
+            width: 70px;
+            text-align: center;
+        }
+
+        .table td:nth-child(1),
+        .table td:nth-child(2) {
+            text-align: center;
+        }
+
+        .table td input[type="text"] {
+            width: 100%;
+        }
+
+        .table__actions {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
         .cover-thumb {
             width: 45px;
             height: 45px;
             object-fit: cover;
             border-radius: 4px;
         }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        table th, table td {
-            border: 1px solid #555;
-            padding: 6px 8px;
-        }
-        input[type="text"] {
-            width: 100%;
-            box-sizing: border-box;
+
+        .empty-state {
+            font-size: 14px;
+            background-color: #fff;
+            padding: 16px 14px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
         }
     </style>
 </head>
 
-<body>
-    <h1>노래 관리 (songs)</h1>
+<body class="app-body">
+    <div class="page">
+        <!-- 헤더 -->
+        <header class="page__header">
+            <h1 class="page__title">노래 관리 (songs)</h1>
+            <div class="page__nav">
+                <a href="{{ url_for('index') }}">← 플레이리스트 목록</a>
+                &nbsp;|&nbsp;
+                <a href="{{ url_for('create_playlist') }}">+ 새 플레이리스트 만들기</a>
+            </div>
+        </header>
 
-    <p>
-        <a href="{{ url_for('index') }}">← 플레이리스트 목록</a> |
-        <a href="{{ url_for('create_playlist') }}">+ 새 플레이리스트 만들기</a>
-    </p>
+        <hr class="page__divider">
 
-    <hr>
+        <!-- 1) 곡 등록 -->
+        <section class="section">
+            <h2 class="section__title">곡 등록하기</h2>
 
-    <!-- 1) 곡 등록 -->
-    <h2>곡 등록하기</h2>
-    <form method="POST" action="{{ url_for('add_song') }}">
-        <label>제목:
-            <input type="text" name="title" required>
-        </label><br><br>
-        <label>아티스트:
-            <input type="text" name="artist">
-        </label><br><br>
-        <label>앨범:
-            <input type="text" name="album">
-        </label><br><br>
-        <label>커버 URL:
-            <input type="text" name="cover_url" placeholder="https://...">
-        </label><br><br>
-        <button type="submit">등록</button>
-    </form>
+            <form method="POST" action="{{ url_for('add_song') }}" class="form">
+                <div class="form__group">
+                    <label class="form__label" for="song-title">제목</label>
+                    <input
+                        id="song-title"
+                        type="text"
+                        name="title"
+                        class="form__input"
+                        required
+                    >
+                </div>
 
-    <hr>
+                <div class="form__group">
+                    <label class="form__label" for="song-artist">아티스트</label>
+                    <input
+                        id="song-artist"
+                        type="text"
+                        name="artist"
+                        class="form__input"
+                    >
+                </div>
 
-    <!-- 2) CSV 업로드 -->
-    <h2>CSV 파일로 여러 곡 등록하기</h2>
-    <p>CSV 형식 예시:</p>
-    <pre>
-title,artist,album,cover_url
-노래,가수,앨범,https://example.com/image.jpg
-    </pre>
+                <div class="form__group">
+                    <label class="form__label" for="song-album">앨범</label>
+                    <input
+                        id="song-album"
+                        type="text"
+                        name="album"
+                        class="form__input"
+                    >
+                </div>
 
-    <form method="POST" action="{{ url_for('upload_songs_csv') }}" enctype="multipart/form-data">
-        <input type="file" name="csv_file" accept=".csv">
-        <button type="submit">CSV 업로드</button>
-    </form>
+                <div class="form__group">
+                    <label class="form__label" for="song-cover-url">커버 URL</label>
+                    <input
+                        id="song-cover-url"
+                        type="text"
+                        name="cover_url"
+                        class="form__input"
+                        placeholder="https://..."
+                    >
+                </div>
 
-    <hr>
+                <div class="form__actions">
+                    <button type="submit" class="button button--primary">
+                        등록
+                    </button>
+                </div>
+            </form>
+        </section>
 
-    <!-- 3) 현재 등록된 노래 목록 + 검색 -->
-    <h2>현재 등록된 노래 목록</h2>
+        <hr class="page__divider">
 
-    <form method="GET" action="{{ url_for('manage_songs') }}">
-        <input type="text"
-               name="q"
-               placeholder="제목 / 아티스트 / 앨범 검색"
-               value="{{ search_query or '' }}">
-        <button type="submit">검색</button>
-    </form>
+        <!-- 2) CSV 업로드 -->
+        <section class="section">
+            <h2 class="section__title">CSV 파일로 여러 곡 등록하기</h2>
+            <p class="section__description">아래 예시 형식으로 title, artist, album, cover_url 컬럼을 포함해야 합니다.</p>
 
-    <br>
+            <div class="code-block">
+<pre>title,artist,album,cover_url
+노래,가수,앨범,https://example.com/image.jpg</pre>
+            </div>
 
-    <!-- ⚠ 전체 삭제 버튼 (테이블 밖) -->
-    <form method="POST" action="{{ url_for('delete_all_songs') }}"
-          onsubmit="return confirm('정말 모든 노래를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.');">
-        <button type="submit">⚠ 모든 노래 전체 삭제</button>
-    </form>
+            <form method="POST"
+                  action="{{ url_for('upload_songs_csv') }}"
+                  enctype="multipart/form-data"
+                  class="form"
+            >
+                <input
+                    type="file"
+                    name="csv_file"
+                    class="form__file"
+                    accept=".csv"
+                >
+                <div class="form__actions">
+                    <button type="submit" class="button button--primary">
+                        CSV 업로드
+                    </button>
+                </div>
+            </form>
+        </section>
 
-    <br>
+        <hr class="page__divider">
 
-    {% if songs and songs|length > 0 %}
-        {% if search_query %}
-            <p>“<strong>{{ search_query }}</strong>” 검색 결과: {{ songs|length }}곡</p>
-        {% endif %}
+        <!-- 3) 현재 등록된 노래 목록 + 검색 -->
+        <section class="section">
+            <h2 class="section__title">현재 등록된 노래 목록</h2>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>커버</th>
-                    <th>제목</th>
-                    <th>아티스트</th>
-                    <th>앨범</th>
-                    <th>커버 URL</th>
-                    <th>액션</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in songs %}
-                <tr>
-                    <td>{{ s["song_id"] }}</td>
-                    <td>
-                        {% if s["cover_url"] %}
-                            <img src="{{ s['cover_url'] }}" class="cover-thumb">
-                        {% endif %}
-                    </td>
+            <!-- 검색 -->
+            <form method="GET"
+                  action="{{ url_for('manage_songs') }}"
+                  class="search-bar"
+            >
+                <input
+                    type="text"
+                    name="q"
+                    class="search-bar__input"
+                    placeholder="제목 / 아티스트 / 앨범 검색"
+                    value="{{ search_query or '' }}"
+                >
+                <button type="submit" class="button button--primary button--small">
+                    검색
+                </button>
+            </form>
 
-                    <!-- 🔧 이 행에서 바로 수정 가능한 입력창 -->
-                    <td>
-                        <form method="POST" action="{{ url_for('update_song', song_id=s['song_id']) }}">
-                            <input type="text" name="title" value="{{ s['title'] }}">
-                    </td>
-                    <td>
-                            <input type="text" name="artist" value="{{ s['artist'] or '' }}">
-                    </td>
-                    <td>
-                            <input type="text" name="album" value="{{ s['album'] or '' }}">
-                    </td>
-                    <td>
-                            <input type="text" name="cover_url" value="{{ s['cover_url'] or '' }}">
-                    </td>
-                    <td>
-                            <!-- 수정 버튼 (곡 바로 옆) -->
-                            <button type="submit"
-                                    onclick="return confirm('이 곡의 정보를 수정할까요?');">
-                                수정
-                            </button>
-                        </form>
+            {% if songs and songs|length > 0 %}
+                {% if search_query %}
+                    <p class="search-result-info">
+                        “<strong>{{ search_query }}</strong>” 검색 결과: {{ songs|length }}곡
+                    </p>
+                {% endif %}
 
-                        <!-- 삭제 버튼 (역시 곡 바로 옆, 별도 폼) -->
-                        <form method="POST"
-                              action="{{ url_for('delete_song', song_id=s['song_id']) }}"
-                              style="margin-top:4px;"
-                              onsubmit="return confirm('이 노래를 삭제할까요?');">
-                            <button type="submit">삭제</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>등록된 노래가 없습니다.</p>
-    {% endif %}
+                <!-- 전체 삭제 -->
+                <div class="danger-zone">
+                    <form method="POST"
+                          action="{{ url_for('delete_all_songs') }}"
+                          onsubmit="return confirm('정말 모든 노래를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.');">
+                        <button type="submit" class="button button--danger button--small">
+                            ⚠ 모든 노래 전체 삭제
+                        </button>
+                    </form>
+                    <p class="danger-zone__note">
+                        ※ 이 작업은 되돌릴 수 없습니다.
+                    </p>
+                </div>
 
+                <!-- 노래 목록 테이블 -->
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>커버</th>
+                                <th>제목</th>
+                                <th>아티스트</th>
+                                <th>앨범</th>
+                                <th>커버 URL</th>
+                                <th>액션</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in songs %}
+                            <tr>
+                                <td>{{ s["song_id"] }}</td>
+                                <td>
+                                    {% if s["cover_url"] %}
+                                        <img src="{{ s['cover_url'] }}" class="cover-thumb" alt="">
+                                    {% endif %}
+                                </td>
+
+                                <!-- 🔧 이 행에서 바로 수정 가능한 입력창 (원래 로직 유지) -->
+                                <td>
+                                    <form method="POST"
+                                          action="{{ url_for('update_song', song_id=s['song_id']) }}">
+                                        <input
+                                            type="text"
+                                            name="title"
+                                            value="{{ s['title'] }}"
+                                        >
+                                </td>
+                                <td>
+                                        <input
+                                            type="text"
+                                            name="artist"
+                                            value="{{ s['artist'] or '' }}"
+                                        >
+                                </td>
+                                <td>
+                                        <input
+                                            type="text"
+                                            name="album"
+                                            value="{{ s['album'] or '' }}"
+                                        >
+                                </td>
+                                <td>
+                                        <input
+                                            type="text"
+                                            name="cover_url"
+                                            value="{{ s['cover_url'] or '' }}"
+                                        >
+                                </td>
+                                <td>
+                                    <div class="table__actions">
+                                        <!-- 수정 버튼 (곡 바로 옆) -->
+                                        <button type="submit"
+                                                class="button button--primary button--small"
+                                                onclick="return confirm('이 곡의 정보를 수정할까요?');">
+                                            수정
+                                        </button>
+                                    </form>
+
+                                    <!-- 삭제 버튼 (곡 바로 옆, 별도 폼) -->
+                                    <form method="POST"
+                                          action="{{ url_for('delete_song', song_id=s['song_id']) }}"
+                                          onsubmit="return confirm('이 노래를 삭제할까요?');">
+                                        <button type="submit"
+                                                class="button button--danger button--small">
+                                            삭제
+                                        </button>
+                                    </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    등록된 노래가 없습니다.
+                </div>
+            {% endif %}
+        </section>
+    </div>
 </body>
 </html>

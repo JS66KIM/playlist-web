@@ -3,63 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ playlist["title"] }} - 플레이리스트 상세</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        /* ===== 공통 레이아웃 ===== */
+        body.app-body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .page {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 24px 16px 40px;
+        }
+
+        .page__header {
+            margin-bottom: 16px;
+        }
+
+        .page__title {
+            margin: 0 0 8px;
+            font-size: 24px;
+        }
+
+        .page__back {
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .page__back a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .page__back a:hover {
+            text-decoration: underline;
+        }
+
+        .page__divider {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 16px 0 20px;
+        }
+
+        /* ===== 섹션 공통 ===== */
+        .section {
+            margin-bottom: 28px;
+        }
+
+        .section__title {
+            margin: 0 0 12px;
+            font-size: 18px;
+        }
+
+        /* ===== 플레이리스트 메타 ===== */
+        .playlist-meta {
+            background-color: #fff;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            padding: 12px 14px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .playlist-meta strong {
+            display: inline-block;
+            width: 60px;
+        }
+
+        /* ===== 버튼 공통 ===== */
+        .button {
+            padding: 8px 14px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            background-color: #007bff;
+            color: #ffffff;
+        }
+
+        .button--danger {
+            background-color: #dc3545;
+        }
+
+        .button:hover {
+            opacity: 0.93;
+        }
+
+        .playlist-actions {
+            margin: 16px 0 8px;
+        }
+
+        /* ===== 곡 목록 테이블 ===== */
+        .table-wrapper {
+            background-color: #fff;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .table th,
+        .table td {
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .table thead {
+            background-color: #f0f0f0;
+        }
+
+        .table th:nth-child(1),
+        .table td:nth-child(1) {
+            width: 60px;
+            text-align: center;
+        }
+
+        .song-title {
+            font-weight: 600;
+        }
+
+        .empty-state {
+            font-size: 14px;
+            background-color: #fff;
+            padding: 16px 14px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+    </style>
 </head>
-<body>
-    <h1>{{ playlist["title"] or "제목 없음" }}</h1>
-    
-    <p>
-        <a href="{{ url_for('index') }}">← 플레이리스트 목록으로 돌아가기</a>
-    </p>
-    
-    <div>
-        <p><strong>작성자:</strong> {{ playlist["username"] or "알 수 없음" }}</p>
-        <p><strong>생성일:</strong> {{ playlist["created_at"] or "날짜 없음" }}</p>
-        <p><strong>설명:</strong> {{ playlist["description"] or "설명 없음" }}</p>
+<body class="app-body">
+    <div class="page">
+        <!-- 헤더 -->
+        <header class="page__header">
+            <h1 class="page__title">
+                {{ playlist["title"] or "제목 없음" }}
+            </h1>
+            <p class="page__back">
+                <a href="{{ url_for('index') }}">← 플레이리스트 목록으로 돌아가기</a>
+            </p>
+        </header>
+
+        <!-- 플레이리스트 정보 -->
+        <section class="section">
+            <div class="playlist-meta">
+                <p><strong>작성자:</strong> {{ playlist["username"] or "알 수 없음" }}</p>
+                <p><strong>생성일:</strong> {{ playlist["created_at"] or "날짜 없음" }}</p>
+                <p><strong>설명:</strong> {{ playlist["description"] or "설명 없음" }}</p>
+            </div>
+
+            <!-- 삭제 버튼 (작성자 또는 관리자만) -->
+            {% if session.get('user_id') == playlist['user_id'] or session.get('is_admin') %}
+                <div class="playlist-actions">
+                    <form method="POST"
+                          action="{{ url_for('delete_playlist', playlist_id=playlist['playlist_id']) }}"
+                          onsubmit="return confirm('정말 이 플레이리스트를 삭제하시겠습니까?');">
+                        <button type="submit" class="button button--danger">
+                            🗑 플레이리스트 삭제
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </section>
+
+        <hr class="page__divider">
+
+        <!-- 수록곡 목록 -->
+        <section class="section">
+            <h2 class="section__title">
+                수록곡 목록 ({{ songs|length }}곡)
+            </h2>
+
+            {% if songs and songs|length > 0 %}
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>순서</th>
+                                <th>제목</th>
+                                <th>아티스트</th>
+                                <th>앨범</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for song in songs %}
+                                <tr>
+                                    <td>{{ song["track_order"] }}</td>
+                                    <td class="song-title">{{ song["title"] }}</td>
+                                    <td>{{ song["artist"] or "-" }}</td>
+                                    <td>{{ song["album"] or "-" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    이 플레이리스트에는 아직 노래가 없습니다.
+                </div>
+            {% endif %}
+        </section>
     </div>
-    
-    <!-- 삭제 버튼 추가 -->
-{% if session.get('user_id') == playlist['user_id'] or session.get('is_admin') %}
-<div style="margin: 20px 0;">
-    <form method="POST" 
-          action="{{ url_for('delete_playlist', playlist_id=playlist['playlist_id']) }}"
-          onsubmit="return confirm('정말 이 플레이리스트를 삭제하시겠습니까?');"
-          style="display: inline;">
-        <button type="submit" style="background-color: #dc3545; color: white; padding: 8px 15px; border: none; cursor: pointer;">
-            🗑 플레이리스트 삭제
-        </button>
-    </form>
-</div>
-{% endif %}
-
-    
-    <hr>
-    
-    <h2>수록곡 목록 ({{ songs|length }}곡)</h2>
-    
-    {% if songs and songs|length > 0 %}
-        <table border="1" cellpadding="5" style="width: 100%;">
-            <thead>
-                <tr>
-                    <th>순서</th>
-                    <th>제목</th>
-                    <th>아티스트</th>
-                    <th>앨범</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for song in songs %}
-                    <tr>
-                        <td>{{ song["track_order"] }}</td>
-                        <td><strong>{{ song["title"] }}</strong></td>
-                        <td>{{ song["artist"] or "-" }}</td>
-                        <td>{{ song["album"] or "-" }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>이 플레이리스트에는 아직 노래가 없습니다.</p>
-    {% endif %}
-
 </body>
 </html>

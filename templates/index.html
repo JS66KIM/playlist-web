@@ -3,51 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <title>Playlist Web</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        /* 공통 레이아웃 */
+        body.app-body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .page {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 24px 16px 40px;
+        }
+
+        /* 상단 헤더 / 네비게이션 */
+        .page__header {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .page__title {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .navbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .navbar__greeting {
+            margin-right: auto;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+        .navbar__divider {
+            color: #888;
+        }
+
+        /* 콘텐츠 영역 */
+        .page__content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* 플레이리스트 목록 */
+        .playlist-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .playlist-list__item {
+            background-color: #fff;
+            border-radius: 6px;
+            padding: 12px 14px;
+            border: 1px solid #ddd;
+            margin-bottom: 12px;
+        }
+
+        .playlist-list__title {
+            font-size: 16px;
+            margin: 0 0 4px;
+        }
+
+        .playlist-list__title a {
+            text-decoration: none;
+            color: #222;
+        }
+
+        .playlist-list__title a:hover {
+            text-decoration: underline;
+        }
+
+        .playlist-list__meta {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .playlist-list__meta span {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .empty-state {
+            font-size: 14px;
+            background-color: #fff;
+            padding: 16px 14px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+    </style>
 </head>
-<body>
-    <h1>플레이리스트 목록</h1>
-<p>
-    {% if session.get('user_id') %}
-        안녕하세요, <strong>{{ session.get('username') }}</strong>님 |
-        <a href="{{ url_for('logout') }}">로그아웃</a> |
+<body class="app-body">
+    <div class="page">
+        <!-- 상단 헤더 & 네비게이션 -->
+        <header class="page__header">
+            <h1 class="page__title">플레이리스트 목록</h1>
 
-        <!-- 🎵 로그인한 사람만 플레이리스트 만들기 가능 -->
-        <a href="{{ url_for('create_playlist') }}">+ 새 플레이리스트 만들기</a>
+            <nav class="navbar">
+                {% if session.get('user_id') %}
+                    <span class="navbar__greeting">
+                        안녕하세요, <strong>{{ session.get('username') }}</strong>님
+                    </span>
 
-    {% else %}
-        <a href="{{ url_for('login') }}">로그인</a> 
-        <!-- 로그인 안 했으면 플레이리스트 만들기 숨김 -->
-    {% endif %}
+                    <a href="{{ url_for('logout') }}">로그아웃</a>
 
-    {% if session.get('is_admin') %}
-        | <a href="{{ url_for('manage_songs') }}">노래 관리하기</a>
-    {% endif %}
-</p>
+                    <span class="navbar__divider">|</span>
 
+                    <!-- 🎵 로그인한 사람만 플레이리스트 만들기 가능 -->
+                    <a href="{{ url_for('create_playlist') }}">+ 새 플레이리스트 만들기</a>
+                {% else %}
+                    <span class="navbar__greeting">
+                        로그인 후 플레이리스트를 만들 수 있습니다.
+                    </span>
+                    <a href="{{ url_for('login') }}">로그인</a>
+                {% endif %}
 
+                {% if session.get('is_admin') %}
+                    <span class="navbar__divider">|</span>
+                    <a href="{{ url_for('manage_songs') }}">노래 관리하기</a>
+                {% endif %}
+            </nav>
+        </header>
 
-
-
-
-    {% if playlists and playlists|length > 0 %}
-        <ul>
-            {% for pl in playlists %}
-                <li>
-                    <!-- 플레이리스트 클릭하면 상세 페이지로 이동 -->
-                    <a href="{{ url_for('view_playlist', playlist_id=pl['playlist_id']) }}">
-                        <strong>{{ pl["title"] or "제목 없음" }}</strong>
-                    </a>
-                    <br>
-                    번호: {{ pl["playlist_id"] }} <br>
-                    작성자: {{ pl["username"] or "알 수 없음" }} <br>
-                    날짜: {{ pl["created_at"] or "날짜 없음" }}
-                    <hr>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>등록된 플레이리스트가 없습니다.</p>
-    {% endif %}
-
+        <!-- 메인 콘텐츠 -->
+        <main class="page__content">
+            {% if playlists and playlists|length > 0 %}
+                <ul class="playlist-list">
+                    {% for pl in playlists %}
+                        <li class="playlist-list__item">
+                            <h2 class="playlist-list__title">
+                                <a href="{{ url_for('view_playlist', playlist_id=pl['playlist_id']) }}">
+                                    {{ pl["title"] or "제목 없음" }}
+                                </a>
+                            </h2>
+                            <div class="playlist-list__meta">
+                                <span>번호: {{ pl["playlist_id"] }}</span>
+                                <span>작성자: {{ pl["username"] or "알 수 없음" }}</span>
+                                <span>날짜: {{ pl["created_at"] or "날짜 없음" }}</span>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="empty-state">
+                    등록된 플레이리스트가 없습니다.
+                </div>
+            {% endif %}
+        </main>
+    </div>
 </body>
 </html>

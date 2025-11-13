@@ -3,101 +3,311 @@
 <head>
     <meta charset="UTF-8">
     <title>플레이리스트 만들기</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <style>
+        /* 공통 레이아웃 */
+        body.app-body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .page {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 24px 16px 40px;
+        }
+
+        .page__header {
+            margin-bottom: 16px;
+        }
+
+        .page__title {
+            margin: 0 0 8px;
+            font-size: 24px;
+        }
+
+        .page__back {
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .page__back a {
+            text-decoration: none;
+            color: #555;
+        }
+
+        .page__back a:hover {
+            text-decoration: underline;
+        }
+
+        /* 섹션 공통 */
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section__title {
+            margin: 0 0 12px;
+            font-size: 18px;
+        }
+
+        /* 검색 영역 */
+        .search {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .search__input {
+            flex: 1;
+            min-width: 220px;
+            padding: 8px 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .search__button {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .search__button:hover {
+            background-color: #0056b3;
+        }
+
+        /* 폼 공통 */
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form__group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-width: 520px;
+        }
+
+        .form__label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form__input,
+        .form__textarea {
+            padding: 8px 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form__textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form__submit {
+            align-self: flex-start;
+            padding: 10px 18px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            background-color: #28a745;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .form__submit:hover {
+            background-color: #1e7e34;
+        }
+
+        /* 테이블 영역 */
+        .table-wrapper {
+            background-color: #fff;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .table thead {
+            background-color: #f0f0f0;
+        }
+
+        .table th,
+        .table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: left;
+        }
+
+        .table th:first-child,
+        .table td:first-child,
+        .table th:nth-child(2),
+        .table td:nth-child(2) {
+            text-align: center;
+            width: 60px;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
         .cover-thumb {
             width: 40px;
             height: 40px;
             object-fit: cover;
             border-radius: 4px;
         }
-        table {
-            border-collapse: collapse;
-            width: 100%;
+
+        .empty-state {
+            font-size: 14px;
+            background-color: #fff;
+            padding: 16px 14px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
         }
-        table th, table td {
-            padding: 5px 8px;
-            border: 1px solid #000;
+
+        .empty-state a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .empty-state a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
-<body>
-    <h1>새 플레이리스트 만들기</h1>
-
-    <!-- 메인으로 돌아가는 링크 -->
-    <p><a href="{{ url_for('index') }}">← 플레이리스트 목록으로 돌아가기</a></p>
-
-    <!-- 🔍 곡 검색 폼 (GET) - 독립된 폼 -->
-    <h2>노래 검색</h2>
-    <form method="GET" action="{{ url_for('create_playlist') }}">
-        <input type="text"
-               name="q"
-               placeholder="제목/아티스트/앨범 검색"
-               value="{{ search_query or '' }}">
-        <button type="submit">검색</button>
-    </form>
-
-    <br>
-
-    <!-- 🎵 플레이리스트 저장 폼 (POST) -->
-    <form method="POST" action="{{ url_for('create_playlist') }}">
-        
-        <h2>플레이리스트 정보</h2>
-        <label>
-            제목:
-            <input type="text" name="title" required>
-        </label>
-        <br><br>
-
-        <label>
-            설명:
-            <textarea name="description" rows="3" cols="40"></textarea>
-        </label>
-        <br><br>
-
-        <hr>
-
-        <h2>노래 선택</h2>
-
-        {% if songs and songs|length > 0 %}
-            <table>
-                <thead>
-                    <tr>
-                        <th>선택</th>
-                        <th>커버</th>
-                        <th>제목</th>
-                        <th>아티스트</th>
-                        <th>앨범</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for s in songs %}
-                        <tr>
-                            <td style="text-align:center;">
-                                <!-- 체크박스로 곡 선택, value 는 song_id -->
-                                <input type="checkbox" name="song_ids" value="{{ s['song_id'] }}">
-                            </td>
-                            <td style="text-align:center;">
-                                {% if s['cover_url'] %}
-                                    <img src="{{ s['cover_url'] }}" alt="cover" class="cover-thumb">
-                                {% endif %}
-                            </td>
-                            <td>{{ s['title'] }}</td>
-                            <td>{{ s['artist'] or '-' }}</td>
-                            <td>{{ s['album'] or '-' }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-
-            <br>
-            <button type="submit">플레이리스트 저장</button>
-
-        {% else %}
-            <p>표시할 노래가 없습니다. 
-               <a href="{{ url_for('manage_songs') }}">노래 관리 페이지</a>에서 노래를 추가하세요.
+<body class="app-body">
+    <div class="page">
+        <!-- 상단 헤더 -->
+        <header class="page__header">
+            <h1 class="page__title">새 플레이리스트 만들기</h1>
+            <p class="page__back">
+                <a href="{{ url_for('index') }}">← 플레이리스트 목록으로 돌아가기</a>
             </p>
-        {% endif %}
-    </form>
+        </header>
 
+        <!-- 플레이리스트 기본 정보 + 노래 선택 (POST) -->
+        <form method="POST" action="{{ url_for('create_playlist') }}" class="form">
+            <!-- 플레이리스트 기본 정보 -->
+            <section class="section">
+                <h2 class="section__title">플레이리스트 정보</h2>
+
+                <div class="form__group">
+                    <label class="form__label" for="playlist-title">제목</label>
+                    <input
+                        id="playlist-title"
+                        type="text"
+                        name="title"
+                        class="form__input"
+                        required
+                    >
+                </div>
+
+                <div class="form__group">
+                    <label class="form__label" for="playlist-description">설명</label>
+                    <textarea
+                        id="playlist-description"
+                        name="description"
+                        class="form__textarea"
+                        rows="3"
+                    ></textarea>
+                </div>
+            </section>
+
+            <!-- 🔍 노래 검색 (GET 폼은 밖에, 하지만 위치는 노래 선택 위) -->
+        </form>
+
+        <section class="section">
+            <h2 class="section__title">노래 검색</h2>
+            <form method="GET" action="{{ url_for('create_playlist') }}" class="search">
+                <input
+                    type="text"
+                    name="q"
+                    class="search__input"
+                    placeholder="제목/아티스트/앨범 검색"
+                    value="{{ search_query or '' }}"
+                >
+                <button type="submit" class="search__button">검색</button>
+            </form>
+        </section>
+
+        <!-- 다시 POST 폼 시작: 노래 선택 + 저장 -->
+        <form method="POST" action="{{ url_for('create_playlist') }}" class="form">
+            <input type="hidden" name="title" value="{{ request.form.get('title', '') }}">
+            <input type="hidden" name="description" value="{{ request.form.get('description', '') }}">
+
+            <section class="section">
+                <h2 class="section__title">노래 선택</h2>
+
+                {% if songs and songs|length > 0 %}
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>커버</th>
+                                    <th>제목</th>
+                                    <th>아티스트</th>
+                                    <th>앨범</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for s in songs %}
+                                    <tr>
+                                        <td>
+                                            <input
+                                                type="checkbox"
+                                                name="song_ids"
+                                                value="{{ s['song_id'] }}"
+                                            >
+                                        </td>
+                                        <td>
+                                            {% if s['cover_url'] %}
+                                                <img
+                                                    src="{{ s['cover_url'] }}"
+                                                    alt="cover"
+                                                    class="cover-thumb"
+                                                >
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ s['title'] }}</td>
+                                        <td>{{ s['artist'] or '-' }}</td>
+                                        <td>{{ s['album'] or '-' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button type="submit" class="form__submit">
+                        플레이리스트 저장
+                    </button>
+                {% else %}
+                    <div class="empty-state">
+                        표시할 노래가 없습니다.
+                        <a href="{{ url_for('manage_songs') }}">노래 관리 페이지</a>에서 노래를 추가하세요.
+                    </div>
+                {% endif %}
+            </section>
+        </form>
+    </div>
 </body>
 </html>

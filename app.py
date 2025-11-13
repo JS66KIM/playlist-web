@@ -180,6 +180,7 @@ def view_playlist(playlist_id):
     conn = get_db_connection()
     cur = conn.cursor()
 
+    # 플레이리스트 정보
     cur.execute("""
         SELECT p.playlist_id,
                p.user_id,
@@ -197,13 +198,15 @@ def view_playlist(playlist_id):
         conn.close()
         return "플레이리스트를 찾을 수 없습니다.", 404
 
+    # 플레이리스트에 포함된 곡 목록
     cur.execute("""
-        SELECT SELECT s.song_id,
-       s.title,
-       s.artist,
-       s.album,
-       s.cover_url,
-       ps.track_order
+        SELECT 
+            s.song_id,
+            s.title,
+            s.artist,
+            s.album,
+            s.cover_url,
+            ps.track_order
         FROM playlist_songs ps
         JOIN songs s ON ps.song_id = s.song_id
         WHERE ps.playlist_id = ?
@@ -215,7 +218,6 @@ def view_playlist(playlist_id):
     return render_template('view_playlist.html',
                            playlist=playlist,
                            songs=songs)
-
 
 # 플레이리스트 삭제 (본인 또는 관리자만)
 @app.route('/playlists/delete/<int:playlist_id>', methods=['POST'])

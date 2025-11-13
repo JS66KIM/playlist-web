@@ -3,110 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <title>로그인 / 회원가입</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <style>
-        body {
+        /* 전체 레이아웃 */
+        body.auth-body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            background-color: #f5f5f5;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f5f5f5;
         }
-        .login-box {
-            background: white;
-            padding: 40px;
+
+        .auth {
+            width: 100%;
+            max-width: 420px;
+            padding: 16px;
+        }
+
+        .auth__box {
+            background: #ffffff;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 360px;
+            padding: 28px 24px 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }
-        h2 {
+
+        .auth__title {
             text-align: center;
-            margin-bottom: 20px;
+            font-size: 20px;
+            margin: 0 0 18px;
         }
-        input[type="text"],
-        input[type="password"],
-        input[type="email"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+
+        .auth__section-title {
             font-size: 16px;
+            font-weight: 700;
+            margin: 20px 0 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #e0e0e0;
         }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .error {
-            color: red;
+
+        /* 에러 메시지 */
+        .auth__error {
+            color: #e63946;
+            font-size: 13px;
             text-align: center;
-            margin-bottom: 10px;
+            margin: 0 0 10px;
         }
-        .section-title {
-            font-size: 18px;
-            margin-top: 25px;
-            margin-bottom: 10px;
-            font-weight: bold;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
+
+        /* 폼 공통 */
+        .auth__form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        .link-box {
-            margin-top: 15px;
-            text-align: center;
+
+        .auth__input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
             font-size: 14px;
         }
-        a {
+
+        .auth__button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #007bff;
+            margin-top: 4px;
+        }
+
+        .auth__button--register {
+            background-color: #28a745;
+        }
+
+        .auth__button:hover {
+            opacity: 0.92;
+        }
+
+        /* 하단 링크 */
+        .auth__footer {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .auth__footer a {
             color: #007bff;
             text-decoration: none;
         }
+
+        .auth__footer a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
-<body>
-    <div class="login-box">
+<body class="auth-body">
+    <main class="auth">
+        <section class="auth__box">
 
-        <!-- 로그인 -->
-        <h2>🔑 로그인</h2>
+            <!-- 로그인 -->
+            <h1 class="auth__title">로그인</h1>
 
-        {% if login_error %}
-        <p class="error">{{ login_error }}</p>
-        {% endif %}
+            {% if login_error %}
+                <p class="auth__error">{{ login_error }}</p>
+            {% endif %}
 
-        <form method="POST">
-            <input type="hidden" name="action" value="login">
-            <input type="text" name="username" placeholder="아이디" required autofocus>
-            <input type="password" name="password" placeholder="비밀번호" required>
-            <button type="submit">로그인</button>
-        </form>
+            <form method="POST" class="auth__form">
+                <input type="hidden" name="action" value="login">
 
-        <!-- 회원가입 -->
-        <div class="section-title">회원가입</div>
+                <input
+                    type="text"
+                    name="username"
+                    class="auth__input"
+                    placeholder="아이디"
+                    required
+                    autofocus
+                >
+                <input
+                    type="password"
+                    name="password"
+                    class="auth__input"
+                    placeholder="비밀번호"
+                    required
+                >
+                <button type="submit" class="auth__button">
+                    로그인
+                </button>
+            </form>
 
-        {% if register_error %}
-        <p class="error">{{ register_error }}</p>
-        {% endif %}
+            <!-- 회원가입 -->
+            <h2 class="auth__section-title">회원가입</h2>
 
-        <form method="POST">
-            <input type="hidden" name="action" value="register">
-            <input type="text" name="new_username" placeholder="아이디" required>
-            <input type="email" name="new_email" placeholder="이메일" required>
-            <input type="password" name="new_password" placeholder="비밀번호" required>
-            <button type="submit" style="background-color: #28a745;">회원가입</button>
-        </form>
+            {% if register_error %}
+                <p class="auth__error">{{ register_error }}</p>
+            {% endif %}
 
-        <div class="link-box">
-            <a href="{{ url_for('index') }}">← 메인으로 돌아가기</a><br><br>
-        </div>
+            <form method="POST" class="auth__form">
+                <input type="hidden" name="action" value="register">
 
-    </div>
+                <input
+                    type="text"
+                    name="new_username"
+                    class="auth__input"
+                    placeholder="아이디"
+                    required
+                >
+                <input
+                    type="email"
+                    name="new_email"
+                    class="auth__input"
+                    placeholder="이메일"
+                    required
+                >
+                <input
+                    type="password"
+                    name="new_password"
+                    class="auth__input"
+                    placeholder="비밀번호"
+                    required
+                >
+                <button type="submit" class="auth__button auth__button--register">
+                    회원가입
+                </button>
+            </form>
+
+            <div class="auth__footer">
+                <a href="{{ url_for('index') }}">← 메인으로 돌아가기</a>
+            </div>
+        </section>
+    </main>
 </body>
 </html>
