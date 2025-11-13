@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="playlist.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="0"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="1269"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="playlist_songs" custom_title="0" dock_id="1" table="4,14:mainplaylist_songs"/><dock_state state="000000ff00000000fd00000001000000020000000000000000fc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000010100ffffff000000000000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1*">CREATE TABLE users (
+  user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT NOT NULL,
+  email TEXT NOT NULL,
+  password TEXT NOT NULL
+);
+CREATE TABLE songs (
+  song_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  artist TEXT,
+  album TEXT
+);
+CREATE TABLE playlists (
+  playlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  title TEXT,
+  description TEXT,
+  created_at TEXT,
+  FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+CREATE TABLE playlist_songs (
+  ps_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  playlist_id INTEGER,
+  song_id INTEGER,
+  track_order INTEGER,
+  FOREIGN KEY (playlist_id) REFERENCES playlists(playlist_id),
+  FOREIGN KEY (song_id) REFERENCES songs(song_id)
+);
+
+</sql><current_tab id="0"/></tab_sql></sqlb_project>
