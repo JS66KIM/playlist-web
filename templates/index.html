@@ -6,17 +6,22 @@
 </head>
 <body>
     <h1>플레이리스트 목록</h1>
-    <p><a href="{{ url_for('create_playlist') }}">+ 새 플레이리스트 만들기</a></p>
+    <p>
+    <a href="{{ url_for('create_playlist') }}">+ 새 플레이리스트 만들기</a> |
+    <a href="{{ url_for('manage_songs') }}">노래 관리하기 (songs)</a>
+    </p>
 
 
-    <!-- playlists 는 app.py 에서 render_template 로 넘긴 변수 -->
     {% if playlists and playlists|length > 0 %}
         <ul>
             {% for pl in playlists %}
                 <li>
-                    <!-- pl["컬럼명"] 으로 데이터 사용 -->
+                    <!-- 플레이리스트 클릭하면 상세 페이지로 이동 -->
+                    <a href="{{ url_for('view_playlist', playlist_id=pl['playlist_id']) }}">
+                        <strong>{{ pl["title"] or "제목 없음" }}</strong>
+                    </a>
+                    <br>
                     번호: {{ pl["playlist_id"] }} <br>
-                    제목: {{ pl["title"] or "제목 없음" }} <br>
                     작성자: {{ pl["username"] or "알 수 없음" }} <br>
                     날짜: {{ pl["created_at"] or "날짜 없음" }}
                     <hr>
@@ -24,7 +29,6 @@
             {% endfor %}
         </ul>
     {% else %}
-        <!-- 테이블에 데이터가 하나도 없을 때 -->
         <p>등록된 플레이리스트가 없습니다.</p>
     {% endif %}
 

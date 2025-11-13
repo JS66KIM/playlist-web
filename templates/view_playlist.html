@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ playlist["title"] }} - 플레이리스트 상세</title>
+</head>
+<body>
+    <h1>{{ playlist["title"] or "제목 없음" }}</h1>
+    
+    <p>
+        <a href="{{ url_for('index') }}">← 플레이리스트 목록으로 돌아가기</a>
+    </p>
+    
+    <div>
+        <p><strong>작성자:</strong> {{ playlist["username"] or "알 수 없음" }}</p>
+        <p><strong>생성일:</strong> {{ playlist["created_at"] or "날짜 없음" }}</p>
+        <p><strong>설명:</strong> {{ playlist["description"] or "설명 없음" }}</p>
+    </div>
+    
+    <!-- 삭제 버튼 추가 -->
+    <div style="margin: 20px 0;">
+        <form method="POST" 
+              action="{{ url_for('delete_playlist', playlist_id=playlist['playlist_id']) }}"
+              onsubmit="return confirm('정말 이 플레이리스트를 삭제하시겠습니까?');"
+              style="display: inline;">
+            <button type="submit" style="background-color: #dc3545; color: white; padding: 8px 15px; border: none; cursor: pointer;">
+                🗑 플레이리스트 삭제
+            </button>
+        </form>
+    </div>
+    
+    <hr>
+    
+    <h2>수록곡 목록 ({{ songs|length }}곡)</h2>
+    
+    {% if songs and songs|length > 0 %}
+        <table border="1" cellpadding="5" style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>순서</th>
+                    <th>제목</th>
+                    <th>아티스트</th>
+                    <th>앨범</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for song in songs %}
+                    <tr>
+                        <td>{{ song["track_order"] }}</td>
+                        <td><strong>{{ song["title"] }}</strong></td>
+                        <td>{{ song["artist"] or "-" }}</td>
+                        <td>{{ song["album"] or "-" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>이 플레이리스트에는 아직 노래가 없습니다.</p>
+    {% endif %}
+
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>노래 관리</title>
+</head>
+<body>
+    <h1>노래 관리 (songs 테이블)</h1>
+
+    <!-- 메인 / 플레이리스트 생성 페이지로 가는 링크들 -->
+    <p>
+        <a href="{{ url_for('index') }}">← 플레이리스트 목록</a> |
+        <a href="{{ url_for('create_playlist') }}">+ 새 플레이리스트 만들기</a>
+    </p>
+
+    <hr>
+
+    <!-- 1. 한 곡씩 등록하는 폼 -->
+    <h2>한 곡 등록하기</h2>
+    <form method="POST" action="{{ url_for('add_song') }}">
+        <label>
+            제목 (title):
+            <input type="text" name="title" required>
+        </label>
+        <br><br>
+
+        <label>
+            아티스트 (artist):
+            <input type="text" name="artist">
+        </label>
+        <br><br>
+
+        <label>
+            앨범 (album):
+            <input type="text" name="album">
+        </label>
+        <br><br>
+
+        <button type="submit">노래 등록</button>
+    </form>
+
+    <hr>
+
+    <!-- 2. CSV 파일로 여러 곡 한 번에 등록 -->
+    <h2>CSV 파일로 여러 곡 등록하기</h2>
+    <p>CSV 형식 예시 (첫 줄은 헤더):</p>
+    <pre>
+title,artist,album
+노래제목1,가수1,앨범1
+노래제목2,가수2,앨범2
+    </pre>
+
+    <form method="POST"
+          action="{{ url_for('upload_songs_csv') }}"
+          enctype="multipart/form-data">
+        <input type="file" name="csv_file" accept=".csv">
+        <button type="submit">CSV 업로드</button>
+    </form>
+
+    <hr>
+
+    <!-- 3. 전체 삭제 버튼 -->
+    <h2>현재 등록된 노래 목록</h2>
+
+    <form method="POST" action="{{ url_for('delete_all_songs') }}"
+          onsubmit="return confirm('정말 모든 노래를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.');">
+        <button type="submit">⚠ 전체 노래 삭제</button>
+    </form>
+
+    <br>
+
+    {% if songs and songs|length > 0 %}
+        <table border="1" cellpadding="5">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>제목</th>
+                    <th>아티스트</th>
+                    <th>앨범</th>
+                    <th>삭제</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in songs %}
+                    <tr>
+                        <td>{{ s["song_id"] }}</td>
+                        <td>{{ s["title"] }}</td>
+                        <td>{{ s["artist"] or "" }}</td>
+                        <td>{{ s["album"] or "" }}</td>
+                        <td>
+                            <!-- 개별 삭제 버튼 -->
+                            <form method="POST"
+                                  action="{{ url_for('delete_song', song_id=s['song_id']) }}"
+                                  onsubmit="return confirm('이 노래를 삭제할까요?');">
+                                <button type="submit">삭제</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>등록된 노래가 없습니다.</p>
+    {% endif %}
+
+</body>
+</html>

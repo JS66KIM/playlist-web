@@ -10,8 +10,19 @@
     <!-- 메인으로 돌아가는 링크 -->
     <p><a href="{{ url_for('index') }}">← 플레이리스트 목록으로 돌아가기</a></p>
 
-    <!-- 1. 플레이리스트 기본 정보 입력 폼 -->
+    <!-- 곡 검색 폼 (GET) - 별도 폼 -->
+    <h2>노래 검색</h2>
+    <form method="GET" action="{{ url_for('create_playlist') }}">
+        <input type="text" name="q" placeholder="제목/아티스트/앨범 검색"
+               value="{{ search_query or '' }}">
+        <button type="submit">검색</button>
+    </form>
+
+    <br>
+
+    <!-- 플레이리스트 저장 폼 (POST) - 하나로 통합 -->
     <form method="POST" action="{{ url_for('create_playlist') }}">
+        
         <h2>플레이리스트 정보</h2>
         <label>
             제목:
@@ -25,36 +36,18 @@
         </label>
         <br><br>
 
-        <!-- 2. 곡 검색 폼 (GET) -->
-        <!-- 검색할 때는 위쪽 주소만 새로 불러오도록 별도 폼 사용 -->
-    </form>
+        <hr>
 
-    <h2>노래 검색</h2>
-    <form method="GET" action="{{ url_for('create_playlist') }}">
-        <input type="text" name="q" placeholder="제목/아티스트/앨범 검색"
-               value="{{ search_query or '' }}">
-        <button type="submit">검색</button>
-    </form>
-
-    <br>
-
-    <!-- 3. 검색 결과로 나온 songs 목록 + 체크박스 선택 -->
-    <form method="POST" action="{{ url_for('create_playlist') }}">
-        <!-- 제목/설명은 다시 써야 하는 게 번거로우니,
-             지금은 간단하게 곡 선택 기능만 먼저 구현해도 됨.
-             (필요하면 JS나 hidden input 으로 나중에 개선 가능)
-        -->
-
-        <h2>노래 목록</h2>
+        <h2>노래 선택</h2>
 
         {% if songs and songs|length > 0 %}
-            <table border="1" cellpadding="5">
+            <table border="1" cellpadding="5" style="width: 100%;">
                 <thead>
                     <tr>
                         <th>선택</th>
-                        <th>제목 (title)</th>
-                        <th>아티스트 (artist)</th>
-                        <th>앨범 (album)</th>
+                        <th>제목</th>
+                        <th>아티스트</th>
+                        <th>앨범</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -65,32 +58,20 @@
                                 <input type="checkbox" name="song_ids" value="{{ s['song_id'] }}">
                             </td>
                             <td>{{ s['title'] }}</td>
-                            <td>{{ s['artist'] or '' }}</td>
-                            <td>{{ s['album'] or '' }}</td>
+                            <td>{{ s['artist'] or '-' }}</td>
+                            <td>{{ s['album'] or '-' }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
 
             <br>
-            <!-- 임시로 제목/설명 입력도 이 폼에 같이 두자 (실용적으로) -->
-            <h3>플레이리스트 정보 입력</h3>
-            <label>
-                제목:
-                <input type="text" name="title" required>
-            </label>
-            <br><br>
-
-            <label>
-                설명:
-                <textarea name="description" rows="3" cols="40"></textarea>
-            </label>
-            <br><br>
-
             <button type="submit">플레이리스트 저장</button>
 
         {% else %}
-            <p>표시할 노래가 없습니다. songs 테이블에 데이터를 추가하세요.</p>
+            <p>표시할 노래가 없습니다. 
+               <a href="{{ url_for('manage_songs') }}">노래 관리 페이지</a>에서 노래를 추가하세요.
+            </p>
         {% endif %}
     </form>
 

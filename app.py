@@ -76,6 +76,133 @@ def test_db():
     conn.close()
     return f"현재 데이터베이스에 존재하는 테이블: {tables}"
 
+
+
+@app.route('/playlists/new', methods=['GET', 'POST'])
+def create_playlist():
+    """
+    새 플레이리스트를 생성하는 페이지.
+    - GET  : 화면에 폼 + 곡 검색/목록을 보여줌
+    - POST : 사용자가 작성한 제목/설명 + 선택한 곡들을 DB에 저장
+    """
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # ---------- [POST] 폼 제출: 플레이리스트 저장 ----------
+    if request.method == 'POST':
+        # 폼에서 넘어온 값들 꺼내기
+        title = request.form.get('title')
+        description = request.form.get('description')
+
+        # 로그인 기능이 아직 없으니까 user_id 는 임시로 1번 사용자라고 가정
+        user_id = 1
+
+        # 선택된 곡 ID 들 (체크박스 name="song_ids")
+        selected_song_ids = request.form.getlist('song_ids')
+
+        # 플레이리스트 기본 정보 저장
+        cur.execute("""
+            INSERT INTO playlists (user_id, title, description, created_at)
+            VALUES (?, ?, ?, datetime('now'))
+        """, (user_id, title, description))
+        
+        # 방금 INSERT 한 playlist 의 id 가져오기
+        playlist_id = cur.lastrowid
+
+        # 선택된 곡들을 playlist_songs 테이블에 넣기
+        # track_order 는 1부터 순서대로
+        for order, song_id in enumerate(selected_song_ids, start=1):
+            cur.execute("""
+                INSERT INTO playlist_songs (playlist_id, song_id, track_order)
+                VALUES (?, ?, ?)
+            """, (playlist_id, song_id, order))
+
+        # 변경사항 저장
+        conn.commit()
+        conn.close()
+
+        # 저장 후 메인 페이지로 이동
+        return redirect(url_for('index'))
+
+    # ---------- [GET] 페이지 처음 접속: 검색 + 곡 목록 ----------
+    # 검색어 받기 (?q=검색어)
+    search_query = request.args.get('q', '').strip()
+
+    if search_query:
+        # 검색어가 있을 때: 제목/아티스트/앨범에 포함되면 보여줌
+        cur.execute("""
+            SELECT song_id, title, artist, album
+            FROM songs
+            WHERE title  LIKE ?
+               OR artist LIKE ?
+               OR album  LIKE ?
+            ORDER BY title
+        """, (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%'))
+    else:
+        # 검색어 없으면 전체 곡 목록
+        cur.execute("""
+            SELECT song_id, title, artist, album
+            FROM songs
+            ORDER BY title
+        """)
+
+    songs = cur.fetchall()
+    conn.close()
+
+    # 템플릿에 곡 목록과 검색어 전달
+    return render_template('create_playlist.html',
+                           songs=songs,
+                           search_query=search_query)
+
+# 플레이리스트 상세보기 (노래 목록 포함)
+@app.route('/playlists/<int:playlist_id>')
+def view_playlist(playlist_id):
+    """
+    특정 플레이리스트의 상세 정보와 포함된 노래 목록을 보여주는 페이지
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # 플레이리스트 기본 정보 가져오기
+    cur.execute("""
+        SELECT p.playlist_id,
+               p.title,
+               p.description,
+               p.created_at,
+               u.username
+        FROM playlists p
+        LEFT JOIN users u ON p.user_id = u.user_id
+        WHERE p.playlist_id = ?
+    """, (playlist_id,))
+    
+    playlist = cur.fetchone()
+    
+    if not playlist:
+        conn.close()
+        return "플레이리스트를 찾을 수 없습니다.", 404
+    
+    # 플레이리스트에 포함된 노래 목록 가져오기
+    cur.execute("""
+        SELECT s.song_id,
+               s.title,
+               s.artist,
+               s.album,
+               ps.track_order
+        FROM playlist_songs ps
+        JOIN songs s ON ps.song_id = s.song_id
+        WHERE ps.playlist_id = ?
+        ORDER BY ps.track_order
+    """, (playlist_id,))
+    
+    songs = cur.fetchall()
+    conn.close()
+    
+    return render_template('view_playlist.html', 
+                         playlist=playlist, 
+                         songs=songs)
+
+
 # ---------------------------------------------
 # 5) 노래 관리 페이지 (songs 테이블 관리)
 # ---------------------------------------------
@@ -214,6 +341,47 @@ def delete_all_songs():
 
     return redirect(url_for('manage_songs'))
 
+# 플레이리스트 삭제
+@app.route('/playlists/delete/<int:playlist_id>', methods=['POST'])
+def delete_playlist(playlist_id):
+    """
+    플레이리스트 삭제 (작성자만 삭제 가능)
+    - user_id가 일치하는지 확인
+    - playlist_songs 테이블의 관련 데이터도 함께 삭제
+    """
+    # 현재 로그인한 사용자 (임시로 1번 사용자)
+    current_user_id = 1
+    
+    conn = get_db_connection()
+    cur = conn.cursor()
+    
+    # 플레이리스트의 작성자 확인
+    cur.execute("""
+        SELECT user_id FROM playlists WHERE playlist_id = ?
+    """, (playlist_id,))
+    
+    result = cur.fetchone()
+    
+    if not result:
+        conn.close()
+        return "플레이리스트를 찾을 수 없습니다.", 404
+    
+    # user_id 확인
+    if result['user_id'] != current_user_id:
+        conn.close()
+        return "삭제 권한이 없습니다. 본인이 만든 플레이리스트만 삭제할 수 있습니다.", 403
+    
+    # 권한이 있으면 삭제 진행
+    # 1. playlist_songs 테이블에서 관련 노래 관계 삭제
+    cur.execute("DELETE FROM playlist_songs WHERE playlist_id = ?", (playlist_id,))
+    
+    # 2. playlists 테이블에서 플레이리스트 삭제
+    cur.execute("DELETE FROM playlists WHERE playlist_id = ?", (playlist_id,))
+    
+    conn.commit()
+    conn.close()
+    
+    return redirect(url_for('index'))
 
 # ---------------------------------------------
 #. Flask 실행
