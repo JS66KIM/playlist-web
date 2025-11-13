@@ -1,5 +1,8 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
+import csv
+import io
+
 
 # Flask 앱 생성
 # __name__ 은 현재 파일 이름을 의미하며,
@@ -74,7 +77,146 @@ def test_db():
     return f"현재 데이터베이스에 존재하는 테이블: {tables}"
 
 # ---------------------------------------------
-# 4) Flask 실행
+# 5) 노래 관리 페이지 (songs 테이블 관리)
+# ---------------------------------------------
+@app.route('/songs', methods=['GET'])
+def manage_songs():
+    """
+    노래 관리 페이지
+    - songs 테이블의 전체 목록을 보여줌
+    - 노래 개별 삭제 버튼
+    - 전체 삭제 버튼
+    - 노래 추가 / CSV 업로드 폼은 템플릿에서 제공
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT song_id, title, artist, album
+        FROM songs
+        ORDER BY song_id DESC
+    """)
+    songs = cur.fetchall()
+    conn.close()
+
+    return render_template('manage_songs.html', songs=songs)
+
+
+# 개별 노래 추가 (한 곡씩 등록)
+@app.route('/songs/add', methods=['POST'])
+def add_song():
+    """
+    한 곡씩 직접 입력해서 songs 테이블에 추가하는 처리.
+    manage_songs.html 의 폼에서 POST 요청을 보냄.
+    """
+    title = request.form.get('title')
+    artist = request.form.get('artist')
+    album = request.form.get('album')
+
+    if not title:
+        # 제목은 필수라고 가정
+        return redirect(url_for('manage_songs'))
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO songs (title, artist, album)
+        VALUES (?, ?, ?)
+    """, (title, artist, album))
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('manage_songs'))
+
+
+# CSV 파일로 여러 곡 한 번에 추가
+@app.route('/songs/upload', methods=['POST'])
+def upload_songs_csv():
+    """
+    CSV 파일 업로드로 여러 곡을 한 번에 추가하는 처리.
+    - CSV 형식 예시 (첫 줄은 헤더):
+        title,artist,album
+        노래제목1,가수1,앨범1
+        노래제목2,가수2,앨범2
+    """
+    file = request.files.get('csv_file')
+
+    # 파일이 없거나 이름이 비어 있으면 그냥 돌아감
+    if file is None or file.filename == '':
+        return redirect(url_for('manage_songs'))
+
+    # 파일 내용을 텍스트 형태로 읽기 (utf-8 기준)
+    try:
+        text_stream = io.TextIOWrapper(file.stream, encoding='utf-8')
+        reader = csv.DictReader(text_stream)  # 첫 줄을 헤더로 사용 (title, artist, album)
+    except Exception:
+        # CSV 파싱에 실패하면 그냥 목록 페이지로 돌아가기
+        return redirect(url_for('manage_songs'))
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    for row in reader:
+        title = row.get('title')
+        artist = row.get('artist')
+        album = row.get('album')
+
+        if title:  # 제목이 있는 행만 저장
+            cur.execute("""
+                INSERT INTO songs (title, artist, album)
+                VALUES (?, ?, ?)
+            """, (title, artist, album))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('manage_songs'))
+
+
+# 개별 노래 삭제
+@app.route('/songs/delete/<int:song_id>', methods=['POST'])
+def delete_song(song_id):
+    """
+    특정 song_id 한 곡만 삭제.
+    이후 playlist_songs 에서도 해당 곡을 참조하는 행을 지워줘야
+    데이터가 깔끔해짐.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # 먼저 playlist_songs 에서 관련 레코드 삭제
+    cur.execute("DELETE FROM playlist_songs WHERE song_id = ?", (song_id,))
+    # 그 다음 실제 노래 삭제
+    cur.execute("DELETE FROM songs WHERE song_id = ?", (song_id,))
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('manage_songs'))
+
+
+# 전체 노래 삭제
+@app.route('/songs/delete_all', methods=['POST'])
+def delete_all_songs():
+    """
+    songs 테이블의 모든 노래 삭제.
+    - playlist_songs 테이블에서 해당 곡들을 참조하는 행도 함께 삭제.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # 먼저 모든 플레이리스트-노래 관계 삭제
+    cur.execute("DELETE FROM playlist_songs")
+    # 그리고 모든 노래 삭제
+    cur.execute("DELETE FROM songs")
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for('manage_songs'))
+
+
+# ---------------------------------------------
+#. Flask 실행
 # ---------------------------------------------
 if __name__ == '__main__':
     # debug=True → 코드 바뀌면 서버 자동 재시작 + 에러 상세 확인 가능

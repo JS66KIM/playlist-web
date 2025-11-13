@@ -6,6 +6,8 @@
 </head>
 <body>
     <h1>플레이리스트 목록</h1>
+    <p><a href="{{ url_for('create_playlist') }}">+ 새 플레이리스트 만들기</a></p>
+
 
     <!-- playlists 는 app.py 에서 render_template 로 넘긴 변수 -->
     {% if playlists and playlists|length > 0 %}
