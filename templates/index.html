@@ -77,6 +77,24 @@
             padding: 12px 14px;
             border: 1px solid #ddd;
             margin-bottom: 12px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .playlist-list__thumb {
+            flex-shrink: 0;
+        }
+
+        .playlist-list__thumb img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .playlist-list__body {
+            flex: 1;
         }
 
         .playlist-list__title {
@@ -151,15 +169,23 @@
                 <ul class="playlist-list">
                     {% for pl in playlists %}
                         <li class="playlist-list__item">
-                            <h2 class="playlist-list__title">
-                                <a href="{{ url_for('view_playlist', playlist_id=pl['playlist_id']) }}">
-                                    {{ pl["title"] or "제목 없음" }}
-                                </a>
-                            </h2>
-                            <div class="playlist-list__meta">
-                                <span>번호: {{ pl["playlist_id"] }}</span>
-                                <span>작성자: {{ pl["username"] or "알 수 없음" }}</span>
-                                <span>날짜: {{ pl["created_at"] or "날짜 없음" }}</span>
+                            {% if pl["display_cover_url"] %}
+                                <div class="playlist-list__thumb">
+                                    <img src="{{ pl['display_cover_url'] }}" alt="playlist cover">
+                                </div>
+                            {% endif %}
+
+                            <div class="playlist-list__body">
+                                <h2 class="playlist-list__title">
+                                    <a href="{{ url_for('view_playlist', playlist_id=pl['playlist_id']) }}">
+                                        {{ pl["title"] or "제목 없음" }}
+                                    </a>
+                                </h2>
+                                <div class="playlist-list__meta">
+                                    <span>번호: {{ pl["playlist_id"] }}</span>
+                                    <span>작성자: {{ pl["username"] or "알 수 없음" }}</span>
+                                    <span>날짜: {{ pl["created_at"] or "날짜 없음" }}</span>
+                                </div>
                             </div>
                         </li>
                     {% endfor %}

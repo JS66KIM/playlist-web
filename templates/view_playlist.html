@@ -95,6 +95,9 @@
 
         .playlist-actions {
             margin: 16px 0 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         /* ===== 곡 목록 테이블 ===== */
@@ -154,6 +157,15 @@
             </p>
         </header>
 
+        <!-- 플레이리스트 커버 이미지 -->
+        {% if display_cover_url %}
+            <div style="margin-bottom:16px;">
+                <img src="{{ display_cover_url }}"
+                     alt="playlist cover"
+                     style="width:120px; height:120px; object-fit:cover; border-radius:8px;">
+            </div>
+        {% endif %}
+
         <!-- 플레이리스트 정보 -->
         <section class="section">
             <div class="playlist-meta">
@@ -162,9 +174,18 @@
                 <p><strong>설명:</strong> {{ playlist["description"] or "설명 없음" }}</p>
             </div>
 
-            <!-- 삭제 버튼 (작성자 또는 관리자만) -->
+            <!-- 수정/삭제 버튼 (작성자 또는 관리자만) -->
             {% if session.get('user_id') == playlist['user_id'] or session.get('is_admin') %}
                 <div class="playlist-actions">
+                    <!-- 수정 버튼: create_playlist(edit 모드)로 이동 -->
+                    <form method="GET"
+                          action="{{ url_for('edit_playlist', playlist_id=playlist['playlist_id']) }}">
+                        <button type="submit" class="button">
+                            ✏️ 플레이리스트 수정
+                        </button>
+                    </form>
+
+                    <!-- 삭제 버튼 -->
                     <form method="POST"
                           action="{{ url_for('delete_playlist', playlist_id=playlist['playlist_id']) }}"
                           onsubmit="return confirm('정말 이 플레이리스트를 삭제하시겠습니까?');">

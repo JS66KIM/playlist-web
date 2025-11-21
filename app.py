@@ -8,25 +8,268 @@ app = Flask(__name__)
 app.secret_key = 'your-secret-key-here-change-this-in-production'
 
 
+# =========================
 # DB 연결 함수
+# =========================
 def get_db_connection():
     conn = sqlite3.connect('database/playlist.db', timeout=5)
     conn.row_factory = sqlite3.Row
     return conn
 
 
+# =========================
+# 공통 헬퍼 함수들
+# =========================
+def search_songs(cur, query):
+    """
+    곡 검색(또는 전체 목록) 공통 함수
+    """
+    query = (query or '').strip()
+    if query:
+        cur.execute("""
+            SELECT song_id, title, artist, album, cover_url
+            FROM songs
+            WHERE title  LIKE ?
+               OR artist LIKE ?
+               OR album  LIKE ?
+            ORDER BY title
+        """, (f'%{query}%', f'%{query}%', f'%{query}%'))
+    else:
+        cur.execute("""
+            SELECT song_id, title, artist, album, cover_url
+            FROM songs
+            ORDER BY title
+        """)
+    return cur.fetchall()
+
+def get_songs_by_ids(cur, ids):
+    """
+    선택된 song_id 리스트로 곡 정보 가져오기
+    """
+    if not ids:
+        return []
+    # 중복 제거 & 정렬
+    ids = list(dict.fromkeys(ids))
+    placeholders = ','.join('?' * len(ids))
+    cur.execute(f"""
+        SELECT song_id, title, artist, album, cover_url
+        FROM songs
+        WHERE song_id IN ({placeholders})
+    """, ids)
+    rows = cur.fetchall()
+
+    # ids 순서대로 정렬 (선택된 순서 유지 느낌)
+    row_map = {row['song_id']: row for row in rows}
+    ordered = [row_map[sid] for sid in ids if sid in row_map]
+    return ordered
+
+def handle_playlist_form(mode='create', playlist_id=None):
+    """
+    플레이리스트 생성(create) / 수정(edit)을 공통으로 처리하는 함수.
+    """
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # 기본값들
+    title = ''
+    description = ''
+    cover_url = ''
+    search_query = ''
+    selected_song_ids = []
+
+    playlist_owner_id = None
+
+    # ---------- 수정 모드: 기존 데이터 불러오기 ----------
+    if mode == 'edit':
+        cur.execute("""
+            SELECT playlist_id, user_id, title, description, cover_url
+            FROM playlists
+            WHERE playlist_id = ?
+        """, (playlist_id,))
+        playlist = cur.fetchone()
+        if not playlist:
+            conn.close()
+            return "플레이리스트를 찾을 수 없습니다.", 404
+
+        playlist_owner_id = playlist['user_id']
+
+        title = playlist['title'] or ''
+        description = playlist['description'] or ''
+        cover_url = playlist['cover_url'] or ''
+
+        # 기존에 선택된 곡들
+        cur.execute("""
+            SELECT song_id, track_order
+            FROM playlist_songs
+            WHERE playlist_id = ?
+            ORDER BY track_order
+        """, (playlist_id,))
+        selected_song_ids = [row['song_id'] for row in cur.fetchall()]
+
+    # ---------- POST 요청 처리 (검색 or 저장) ----------
+    if request.method == 'POST':
+        action = request.form.get('action')  # 'search' 또는 'save'
+
+        # 폼에서 넘어온 값들
+        title = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        cover_url = request.form.get('cover_url', '').strip()
+        search_query = request.form.get('q', '').strip()
+
+        # song_ids: 선택된 곡들(위 '선택된 노래' + 아래 검색 테이블 모두 포함)
+        raw_ids = request.form.getlist('song_ids')
+        try:
+            selected_song_ids = [int(sid) for sid in raw_ids]
+        except ValueError:
+            selected_song_ids = []
+
+        # ----- 1) 검색 버튼 -----
+        if action == 'search':
+            songs = search_songs(cur, search_query)
+            selected_songs = get_songs_by_ids(cur, selected_song_ids)
+            conn.close()
+            return render_template(
+                'create_playlist.html',
+                mode=mode,
+                playlist_id=playlist_id,
+                title_value=title,
+                description_value=description,
+                cover_url_value=cover_url,
+                search_query=search_query,
+                songs=songs,
+                selected_song_ids=selected_song_ids,
+                selected_songs=selected_songs,
+                error=None
+            )
+
+        # ----- 2) 저장 버튼 -----
+        if action == 'save':
+            # 제목/설명 필수
+            if not title or not description:
+                songs = search_songs(cur, search_query)
+                selected_songs = get_songs_by_ids(cur, selected_song_ids)
+                conn.close()
+                return render_template(
+                    'create_playlist.html',
+                    mode=mode,
+                    playlist_id=playlist_id,
+                    title_value=title,
+                    description_value=description,
+                    cover_url_value=cover_url,
+                    search_query=search_query,
+                    songs=songs,
+                    selected_song_ids=selected_song_ids,
+                    selected_songs=selected_songs,
+                    error="제목과 설명을 모두 입력해주세요."
+                )
+
+            # 로그인 체크
+            user_id = session.get('user_id')
+            if not user_id:
+                conn.close()
+                return redirect(url_for('login'))
+
+            # 커버가 비어 있으면 선택된 곡들 중 아무 cover_url 하나 가져오기
+            if not cover_url and selected_song_ids:
+                placeholders = ','.join('?' * len(selected_song_ids))
+                cur.execute(f"""
+                    SELECT cover_url
+                    FROM songs
+                    WHERE song_id IN ({placeholders})
+                      AND cover_url IS NOT NULL
+                    LIMIT 1
+                """, selected_song_ids)
+                row = cur.fetchone()
+                if row:
+                    cover_url = row['cover_url']
+
+            # ---------- 생성 모드 ----------
+            if mode == 'create':
+                cur.execute("""
+                    INSERT INTO playlists (user_id, title, description, created_at, cover_url)
+                    VALUES (?, ?, ?, datetime('now'), ?)
+                """, (user_id, title, description, cover_url))
+                new_playlist_id = cur.lastrowid
+
+                for order, song_id in enumerate(selected_song_ids, start=1):
+                    cur.execute("""
+                        INSERT INTO playlist_songs (playlist_id, song_id, track_order)
+                        VALUES (?, ?, ?)
+                    """, (new_playlist_id, song_id, order))
+
+            # ---------- 수정 모드 ----------
+            else:
+                # 권한 체크
+                is_admin = session.get('is_admin')
+                current_user_id = session.get('user_id')
+                if (not is_admin) and (current_user_id != playlist_owner_id):
+                    conn.close()
+                    return "수정 권한이 없습니다.", 403
+
+                cur.execute("""
+                    UPDATE playlists
+                    SET title = ?, description = ?, cover_url = ?
+                    WHERE playlist_id = ?
+                """, (title, description, cover_url, playlist_id))
+
+                cur.execute("DELETE FROM playlist_songs WHERE playlist_id = ?", (playlist_id,))
+                for order, song_id in enumerate(selected_song_ids, start=1):
+                    cur.execute("""
+                        INSERT INTO playlist_songs (playlist_id, song_id, track_order)
+                        VALUES (?, ?, ?)
+                    """, (playlist_id, song_id, order))
+
+            conn.commit()
+            conn.close()
+            return redirect(url_for('index'))
+
+    # ---------- GET 요청: 초기 진입 ----------
+    search_query = ''
+    songs = search_songs(cur, search_query)
+    selected_songs = get_songs_by_ids(cur, selected_song_ids)
+    conn.close()
+
+    return render_template(
+        'create_playlist.html',
+        mode=mode,
+        playlist_id=playlist_id,
+        title_value=title,
+        description_value=description,
+        cover_url_value=cover_url,
+        search_query=search_query,
+        songs=songs,
+        selected_song_ids=selected_song_ids,
+        selected_songs=selected_songs,
+        error=None
+    )
+
+# =========================
 # 메인 페이지: 플레이리스트 목록
+# =========================
 @app.route('/')
 def index():
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
-        SELECT p.playlist_id,
-               p.user_id,
-               p.title,
-               p.description,
-               p.created_at,
-               u.username
+        SELECT 
+            p.playlist_id,
+            p.user_id,
+            p.title,
+            p.description,
+            p.created_at,
+            p.cover_url,
+            u.username,
+            COALESCE(
+                p.cover_url,
+                (
+                    SELECT s.cover_url
+                    FROM playlist_songs ps
+                    JOIN songs s ON ps.song_id = s.song_id
+                    WHERE ps.playlist_id = p.playlist_id
+                      AND s.cover_url IS NOT NULL
+                    LIMIT 1
+                )
+            ) AS display_cover_url
         FROM playlists p
         LEFT JOIN users u ON p.user_id = u.user_id
         ORDER BY p.playlist_id DESC
@@ -36,7 +279,9 @@ def index():
     return render_template('index.html', playlists=playlists)
 
 
-# 로그인 / 회원가입 페이지 (한 화면에서 처리)
+# =========================
+# 로그인 / 회원가입
+# =========================
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     conn = get_db_connection()
@@ -113,65 +358,20 @@ def logout():
     return redirect(url_for('index'))
 
 
-# 플레이리스트 생성 (목록/검색 + 저장)
+# =========================
+# 플레이리스트 생성 / 수정
+# =========================
+
+# 새 플레이리스트
 @app.route('/playlists/new', methods=['GET', 'POST'])
 def create_playlist():
-    conn = get_db_connection()
-    cur = conn.cursor()
+    return handle_playlist_form(mode='create')
 
-    # 플레이리스트 저장 처리 (POST)
-    if request.method == 'POST':
-        title = request.form.get('title')
-        description = request.form.get('description')
 
-        # 로그인한 사용자만 생성 가능
-        user_id = session.get('user_id')
-        if not user_id:
-            conn.close()
-            return redirect(url_for('login'))
-
-        selected_song_ids = request.form.getlist('song_ids')
-
-        cur.execute("""
-            INSERT INTO playlists (user_id, title, description, created_at)
-            VALUES (?, ?, ?, datetime('now'))
-        """, (user_id, title, description))
-        playlist_id = cur.lastrowid
-
-        for order, song_id in enumerate(selected_song_ids, start=1):
-            cur.execute("""
-                INSERT INTO playlist_songs (playlist_id, song_id, track_order)
-                VALUES (?, ?, ?)
-            """, (playlist_id, song_id, order))
-
-        conn.commit()
-        conn.close()
-        return redirect(url_for('index'))
-
-    # 곡 검색/목록 표시 (GET)
-    search_query = request.args.get('q', '').strip()
-
-    if search_query:
-        cur.execute("""
-            SELECT song_id, title, artist, album, cover_url
-            FROM songs
-            WHERE title  LIKE ?
-               OR artist LIKE ?
-               OR album  LIKE ?
-            ORDER BY title
-        """, (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%'))
-    else:
-        cur.execute("""
-            SELECT song_id, title, artist, album, cover_url
-            FROM songs
-            ORDER BY title
-        """)
-
-    songs = cur.fetchall()
-    conn.close()
-    return render_template('create_playlist.html',
-                           songs=songs,
-                           search_query=search_query)
+# 플레이리스트 수정
+@app.route('/playlists/edit/<int:playlist_id>', methods=['GET', 'POST'])
+def edit_playlist(playlist_id):
+    return handle_playlist_form(mode='edit', playlist_id=playlist_id)
 
 
 # 플레이리스트 상세 페이지 (수록곡 포함)
@@ -180,13 +380,14 @@ def view_playlist(playlist_id):
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # 플레이리스트 정보
+    # 플레이리스트 정보 (cover_url 포함)
     cur.execute("""
         SELECT p.playlist_id,
                p.user_id,
                p.title,
                p.description,
                p.created_at,
+               p.cover_url,
                u.username
         FROM playlists p
         LEFT JOIN users u ON p.user_id = u.user_id
@@ -214,10 +415,20 @@ def view_playlist(playlist_id):
     """, (playlist_id,))
     songs = cur.fetchall()
 
+    # 표시용 cover_url (플레이리스트 커버가 없으면 곡 커버 중 하나 사용)
+    display_cover_url = playlist['cover_url']
+    if not display_cover_url and songs:
+        for s in songs:
+            if s['cover_url']:
+                display_cover_url = s['cover_url']
+                break
+
     conn.close()
     return render_template('view_playlist.html',
                            playlist=playlist,
-                           songs=songs)
+                           songs=songs,
+                           display_cover_url=display_cover_url)
+
 
 # 플레이리스트 삭제 (본인 또는 관리자만)
 @app.route('/playlists/delete/<int:playlist_id>', methods=['POST'])
@@ -252,7 +463,9 @@ def delete_playlist(playlist_id):
     return redirect(url_for('index'))
 
 
-# 노래 관리 페이지 (검색 + 목록 / 관리자 전용)
+# =========================
+# 노래 관리 (관리자 전용)
+# =========================
 @app.route('/songs', methods=['GET'])
 def manage_songs():
     if not session.get('is_admin'):
@@ -296,7 +509,7 @@ def add_song():
     title = request.form.get('title')
     artist = request.form.get('artist')
     album = request.form.get('album')
-    cover_url = request.form.get('cover_url')  # 🔥 추가
+    cover_url = request.form.get('cover_url')
 
     if not title:
         return redirect(url_for('manage_songs'))
@@ -311,6 +524,7 @@ def add_song():
     conn.close()
 
     return redirect(url_for('manage_songs'))
+
 
 # CSV로 여러 곡 업로드 (관리자 전용)
 @app.route('/songs/upload', methods=['POST'])
@@ -339,13 +553,14 @@ def upload_songs_csv():
 
         if title:
             cur.execute("""
-            INSERT INTO songs (title, artist, album, cover_url)
-            VALUES (?, ?, ?, ?)
-        """, (title, artist, album, cover_url))
+                INSERT INTO songs (title, artist, album, cover_url)
+                VALUES (?, ?, ?, ?)
+            """, (title, artist, album, cover_url))
 
     conn.commit()
     conn.close()
     return redirect(url_for('manage_songs'))
+
 
 @app.route('/songs/bulk', methods=['POST'])
 def songs_bulk_action():
@@ -392,6 +607,7 @@ def songs_bulk_action():
     conn.close()
     return redirect(url_for('manage_songs'))
 
+
 @app.route('/songs/update/<int:song_id>', methods=['POST'])
 def update_song(song_id):
     """
@@ -418,7 +634,6 @@ def update_song(song_id):
     conn.close()
 
     return redirect(url_for('manage_songs'))
-
 
 
 # 노래 한 곡 삭제 (관리자 전용)
