@@ -1,89 +1,104 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <title>Playlist Web</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
-        /* 공통 레이아웃 */
+        /* 📌 GLOBAL */
         body.app-body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+            background-color: #121212;
+            /* 페이지 기본 배경 */
+            color: #e0e0e0;
+            /* 기본 텍스트 색 */
+            display: flex;
         }
 
-        .page {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 24px 16px 40px;
+        /* 📌 사이드바 */
+        .sidebar {
+            width: 220px;
+            background-color: #1a1a1a;
+            border-right: 1px solid #2a2a2a;
+            height: 100vh;
+            padding: 20px 16px;
+            box-sizing: border-box;
+            position: fixed;
+            left: 0;
+            top: 0;
+            color: #e6e6e6;
         }
 
-        /* 상단 헤더 / 네비게이션 */
-        .page__header {
+        .sidebar__username {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 24px;
+        }
+
+        .sidebar__menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 14px;
+        }
+
+        .sidebar__menu a {
+            text-decoration: none;
+            color: #d0d0d0;
+            padding: 8px 6px;
+            border-radius: 4px;
+            display: block;
+            font-size: 15px;
+            transition: 0.15s;
+        }
+
+        .sidebar__menu a:hover {
+            background-color: #2b2b2b;
+            color: #fff;
+        }
+
+        /* 📌 메인 콘텐츠 */
+        .page {
+            margin-left: 220px;
+            width: 100%;
+            padding: 24px 16px 40px;
+            box-sizing: border-box;
+            color: #e0e0e0;
+        }
+
+        /* HEADER */
+        .page__header {
             margin-bottom: 24px;
         }
 
         .page__title {
-            margin: 0;
             font-size: 24px;
+            margin: 0;
         }
 
-        .navbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            align-items: center;
-            font-size: 14px;
-        }
-
-        .navbar__greeting {
-            margin-right: auto;
-        }
-
-        .navbar a {
-            text-decoration: none;
-            color: #007bff;
-        }
-
-        .navbar a:hover {
-            text-decoration: underline;
-        }
-
-        .navbar__divider {
-            color: #888;
-        }
-
-        /* 콘텐츠 영역 */
+        /* CONTENT CONTAINERS */
         .page__content {
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
 
-        /* 플레이리스트 목록 */
-        .playlist-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
+        /* PLAYLIST ITEM 카드 */
         .playlist-list__item {
-            background-color: #fff;
+            background-color: #1e1e1e;
+            /* 카드 배경 */
             border-radius: 6px;
             padding: 12px 14px;
-            border: 1px solid #ddd;
+            border: 1px solid #2c2c2c;
             margin-bottom: 12px;
             display: flex;
             gap: 12px;
             align-items: center;
-        }
-
-        .playlist-list__thumb {
-            flex-shrink: 0;
         }
 
         .playlist-list__thumb img {
@@ -93,18 +108,9 @@
             border-radius: 4px;
         }
 
-        .playlist-list__body {
-            flex: 1;
-        }
-
-        .playlist-list__title {
-            font-size: 16px;
-            margin: 0 0 4px;
-        }
-
         .playlist-list__title a {
             text-decoration: none;
-            color: #222;
+            color: #ffffff;
         }
 
         .playlist-list__title a:hover {
@@ -113,89 +119,100 @@
 
         .playlist-list__meta {
             font-size: 13px;
-            color: #555;
-            line-height: 1.5;
+            color: #b3b3b3;
         }
 
-        .playlist-list__meta span {
-            display: inline-block;
-            margin-right: 10px;
-        }
-
+        /* EMPTY STATE */
         .empty-state {
-            font-size: 14px;
-            background-color: #fff;
+            background-color: #1e1e1e;
+            border: 1px solid #2c2c2c;
+            color: #bdbdbd;
             padding: 16px 14px;
             border-radius: 6px;
-            border: 1px solid #ddd;
+            font-size: 14px;
         }
     </style>
 </head>
+
 <body class="app-body">
+
+    <!-- 📌 왼쪽 사이드바 -->
+    <aside class="sidebar">
+        {% if session.get('user_id') %}
+        <div class="sidebar__username">
+            {{ session.get('username') }} 님
+            {% if session.get('is_admin') %}
+            <span
+                style="display:inline-block;font-size:12px;margin-left:6px;padding:2px 6px;border:1px solid #bbb;border-radius:10px;vertical-align:middle;">
+                admin
+            </span>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="sidebar__username">Guest</div>
+        {% endif %}
+
+        <ul class="sidebar__menu">
+            {% if session.get('user_id') %}
+            <li><a href="{{ url_for('logout') }}">로그아웃</a></li>
+            {% else %}
+            <li><a href="{{ url_for('login') }}">로그인</a></li>
+            {% endif %}
+
+            <li><a href="{{ url_for('index') }}">플레이리스트</a></li>
+
+            {% if session.get('user_id') %}
+            <li><a href="{{ url_for('create_playlist') }}">+ 플레이리스트 추가</a></li>
+            {% endif %}
+
+            {% if session.get('is_admin') %}
+            <li><a href="{{ url_for('manage_songs') }}">🎛️ 노래 관리하기</a></li>
+            {% endif %}
+        </ul>
+    </aside>
+
+    <!-- 📌 오른쪽 본문 -->
     <div class="page">
-        <!-- 상단 헤더 & 네비게이션 -->
+
         <header class="page__header">
             <h1 class="page__title">플레이리스트</h1>
-
-            <nav class="navbar">
-                {% if session.get('user_id') %}
-                    <span class="navbar__greeting">
-                        안녕하세요, <strong>{{ session.get('username') }}</strong>님
-                    </span>
-
-                    <a href="{{ url_for('logout') }}">로그아웃</a>
-
-                    <span class="navbar__divider">|</span>
-
-                    <!-- 🎵 로그인한 사람만 플레이리스트 만들기 가능 -->
-                    <a href="{{ url_for('create_playlist') }}">+ 새 플레이리스트 만들기</a>
-                {% else %}
-                    <span class="navbar__greeting">
-                        로그인 후 플레이리스트를 만들 수 있습니다.
-                    </span>
-                    <a href="{{ url_for('login') }}">로그인</a>
-                {% endif %}
-
-                {% if session.get('is_admin') %}
-                    <span class="navbar__divider">|</span>
-                    <a href="{{ url_for('manage_songs') }}">노래 관리하기</a>
-                {% endif %}
-            </nav>
         </header>
 
-        <!-- 메인 콘텐츠 -->
         <main class="page__content">
             {% if playlists and playlists|length > 0 %}
-                <ul class="playlist-list">
-                    {% for pl in playlists %}
-                        <li class="playlist-list__item">
-                            {% if pl["display_cover_url"] %}
-                                <div class="playlist-list__thumb">
-                                    <img src="{{ pl['display_cover_url'] }}" alt="playlist cover">
-                                </div>
-                            {% endif %}
+            <ul class="playlist-list">
+                {% for pl in playlists %}
+                <li class="playlist-list__item">
+                    {% if pl["display_cover_url"] %}
+                    <div class="playlist-list__thumb">
+                        <img src="{{ pl['display_cover_url'] }}" alt="playlist cover">
+                    </div>
+                    {% endif %}
 
-                            <div class="playlist-list__body">
-                                <h2 class="playlist-list__title">
-                                    <a href="{{ url_for('view_playlist', playlist_id=pl['playlist_id']) }}">
-                                        {{ pl["title"] or "제목 없음" }}
-                                    </a>
-                                </h2>
-                                <div class="playlist-list__meta">
-                                    <span>번호: {{ pl["playlist_id"] }}</span>
-                                    <span>작성자: {{ pl["username"] or "알 수 없음" }}</span>
-                                    <span>날짜: {{ pl["created_at"] or "날짜 없음" }}</span>
-                                </div>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
+                    <div class="playlist-list__body">
+                        <h2 class="playlist-list__title">
+                            <a href="{{ url_for('view_playlist', playlist_id=pl['playlist_id']) }}">
+                                {{ pl["title"] or "제목 없음" }}
+                            </a>
+                        </h2>
+                        <div class="playlist-list__meta">
+                            <span>번호: {{ pl["playlist_id"] }}</span>
+                            <span>작성자: {{ pl["username"] or "알 수 없음" }}</span>
+                            <span>날짜: {{ pl["created_at"] or "날짜 없음" }}</span>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
             {% else %}
-                <div class="empty-state">
-                    등록된 플레이리스트가 없습니다.
-                </div>
+            <div class="empty-state">
+                등록된 플레이리스트가 없습니다.
+            </div>
             {% endif %}
         </main>
+
     </div>
+
 </body>
+
 </html>

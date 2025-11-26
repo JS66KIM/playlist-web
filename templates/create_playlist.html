@@ -1,94 +1,229 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-    <meta charset="UTF-8">
-    <title>플레이리스트 {{ '수정' if mode == 'edit' else '만들기' }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>플레이리스트 {{ '수정' if mode == 'edit' else '만들기' }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-        body.app-body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-        }
-        .page { max-width: 960px; margin: 0 auto; padding: 24px 16px 40px; }
-        .page__header { margin-bottom: 16px; }
-        .page__title { margin: 0 0 8px; font-size: 24px; }
-        .page__back { font-size: 14px; margin-bottom: 24px; }
-        .page__back a { text-decoration: none; color: #555; }
-        .page__back a:hover { text-decoration: underline; }
+  <style>
+    /* GLOBAL */
+    body.app-body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      /* 다크 배경 */
+      color: #e0e0e0;
+    }
 
-        .section { margin-bottom: 32px; }
-        .section__title { margin: 0 0 12px; font-size: 18px; }
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
 
-        .search { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-        .search__input {
-            flex: 1; min-width: 220px; padding: 8px 10px;
-            border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box;
-        }
-        .search__button {
-            padding: 8px 16px; border-radius: 4px; border: none;
-            cursor: pointer; background-color: #007bff;
-            color: #fff; font-size: 14px;
-        }
-        .search__button:hover { background-color: #0056b3; }
+    .page__header {
+      margin-bottom: 16px;
+    }
 
-        .form { display: flex; flex-direction: column; gap: 16px; }
+    .page__title {
+      margin: 0 0 8px;
+      font-size: 24px;
+      color: #ffffff;
+    }
 
-        .form__group {
-            display: flex; flex-direction: column; gap: 6px; max-width: 520px;
-        }
-        .form__label { font-size: 14px; font-weight: 600; }
-        .form__input, .form__textarea {
-            padding: 8px 10px; border-radius: 4px; border: 1px solid #ccc;
-            font-size: 14px; box-sizing: border-box;
-        }
-        .form__textarea { resize: vertical; min-height: 80px; }
+    .page__back {
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
 
-        .form__submit {
-            align-self: flex-start; padding: 10px 18px;
-            border-radius: 4px; border: none; cursor: pointer;
-            background-color: #28a745; color: #fff;
-            font-size: 15px; font-weight: 600;
-        }
-        .form__submit[disabled] { opacity: 0.5; cursor: not-allowed; }
-        .form__submit:hover:not([disabled]) { background-color: #1e7e34; }
+    .page__back a {
+      text-decoration: none;
+      color: #8ab4f8;
+    }
 
-        .table-wrapper {
-            background-color: #fff; border-radius: 6px;
-            overflow: hidden; border: 1px solid #ddd;
-        }
-        .table {
-            width: 100%; border-collapse: collapse; font-size: 14px;
-        }
-        .table thead { background-color: #f0f0f0; }
-        .table th, .table td {
-            padding: 8px 10px; border-bottom: 1px solid #e0e0e0;
-            text-align: left;
-        }
-        .table th:first-child, .table td:first-child,
-        .table th:nth-child(2), .table td:nth-child(2) {
-            text-align: center; width: 60px;
-        }
-        .table tbody tr:last-child td { border-bottom: none; }
+    .page__back a:hover {
+      text-decoration: underline;
+    }
 
-        .cover-thumb {
-            width: 40px; height: 40px; object-fit: cover; border-radius: 4px;
-        }
+    /* SECTION */
+    .section {
+      margin-bottom: 32px;
+    }
 
-        .empty-state {
-            font-size: 14px; background-color: #fff;
-            padding: 16px 14px; border-radius: 6px;
-            border: 1px solid #ddd;
-        }
-        .empty-state a { color: #007bff; text-decoration: none; }
-        .empty-state a:hover { text-decoration: underline; }
+    .section__title {
+      margin: 0 0 12px;
+      font-size: 18px;
+      color: #ffffff;
+    }
 
-        .error-msg {
-            color: #dc3545; font-size: 13px; margin-bottom: 8px;
-        }
-    </style>
+    /* SEARCH */
+    .search {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .search__input {
+      flex: 1;
+      min-width: 220px;
+      padding: 8px 10px;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      box-sizing: border-box;
+    }
+
+    .search__button {
+      padding: 8px 16px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background-color: #4dabf7;
+      color: #000;
+      font-size: 14px;
+      font-weight: 600;
+      transition: 0.15s;
+    }
+
+    .search__button:hover {
+      background-color: #1d7bd7;
+    }
+
+    /* FORM */
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .form__group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 520px;
+    }
+
+    .form__label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .form__input,
+    .form__textarea {
+      padding: 8px 10px;
+      border-radius: 4px;
+      border: 1px solid #333;
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .form__textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form__submit {
+      align-self: flex-start;
+      padding: 10px 18px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      background-color: #28a745;
+      color: #000;
+      font-size: 15px;
+      font-weight: 600;
+      transition: 0.15s;
+    }
+
+    .form__submit[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .form__submit:hover:not([disabled]) {
+      background-color: #1c7f33;
+    }
+
+    /* TABLE */
+    .table-wrapper {
+      background-color: #1e1e1e;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #2a2a2a;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      color: #dcdcdc;
+    }
+
+    .table thead {
+      background-color: #2a2a2a;
+      color: #ffffff;
+    }
+
+    .table th,
+    .table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #2f2f2f;
+      text-align: left;
+    }
+
+    .table th:first-child,
+    .table td:first-child,
+    .table th:nth-child(2),
+    .table td:nth-child(2) {
+      text-align: center;
+      width: 60px;
+    }
+
+    .table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .cover-thumb {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+      font-size: 14px;
+      background-color: #1e1e1e;
+      padding: 16px 14px;
+      border-radius: 6px;
+      border: 1px solid #2a2a2a;
+      color: #bdbdbd;
+    }
+
+    .empty-state a {
+      color: #8ab4f8;
+      text-decoration: none;
+    }
+
+    .empty-state a:hover {
+      text-decoration: underline;
+    }
+
+    /* ERROR */
+    .error-msg {
+      color: #ff6b6b;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+  </style>
 </head>
+
 <body class="app-body">
   <div class="page">
     <!-- 상단 헤더 -->
@@ -103,11 +238,11 @@
 
     <!-- 하나의 폼으로 전체 처리 (검색 + 저장) -->
     <form method="POST"
-          action="{% if mode == 'edit' %}{{ url_for('edit_playlist', playlist_id=playlist_id) }}{% else %}{{ url_for('create_playlist') }}{% endif %}"
-          class="form">
+      action="{% if mode == 'edit' %}{{ url_for('edit_playlist', playlist_id=playlist_id) }}{% else %}{{ url_for('create_playlist') }}{% endif %}"
+      class="form">
 
       {% if error %}
-        <div class="error-msg">{{ error }}</div>
+      <div class="error-msg">{{ error }}</div>
       {% endif %}
 
       <!-- 1) 플레이리스트 정보 -->
@@ -116,36 +251,20 @@
 
         <div class="form__group">
           <label class="form__label" for="playlist-title">제목</label>
-          <input
-            id="playlist-title"
-            type="text"
-            name="title"
-            class="form__input"
-            value="{{ title_value or '' }}"
-            required
-          >
+          <input id="playlist-title" type="text" name="title" class="form__input" value="{{ title_value or '' }}"
+            required>
         </div>
 
         <div class="form__group">
           <label class="form__label" for="playlist-description">설명</label>
-          <textarea
-            id="playlist-description"
-            name="description"
-            class="form__textarea"
-            rows="3"
-          >{{ description_value or '' }}</textarea>
+          <textarea id="playlist-description" name="description" class="form__textarea"
+            rows="3">{{ description_value or '' }}</textarea>
         </div>
 
         <div class="form__group">
           <label class="form__label" for="playlist-cover-url">플레이리스트 커버 URL</label>
-          <input
-            id="playlist-cover-url"
-            type="text"
-            name="cover_url"
-            class="form__input"
-            placeholder="https://..."
-            value="{{ cover_url_value or '' }}"
-          >
+          <input id="playlist-cover-url" type="text" name="cover_url" class="form__input" placeholder="https://..."
+            value="{{ cover_url_value or '' }}">
           <small style="font-size:12px; color:#666;">
             비워두면 선택된 곡들 중 하나의 커버 이미지가 자동으로 사용됩니다.
           </small>
@@ -169,28 +288,22 @@
             </thead>
             <tbody id="selected-tbody">
               {% if selected_songs and selected_songs|length > 0 %}
-                {% for s in selected_songs %}
-                  <tr class="selected-row" data-song-id="{{ s['song_id'] }}">
-                    <td>
-                      <input
-                        type="checkbox"
-                        class="song-checkbox song-checkbox-top"
-                        name="song_ids"
-                        value="{{ s['song_id'] }}"
-                        data-song-id="{{ s['song_id'] }}"
-                        checked
-                      >
-                    </td>
-                    <td>
-                      {% if s['cover_url'] %}
-                        <img src="{{ s['cover_url'] }}" alt="cover" class="cover-thumb">
-                      {% endif %}
-                    </td>
-                    <td>{{ s['title'] }}</td>
-                    <td>{{ s['artist'] or '-' }}</td>
-                    <td>{{ s['album'] or '-' }}</td>
-                  </tr>
-                {% endfor %}
+              {% for s in selected_songs %}
+              <tr class="selected-row" data-song-id="{{ s['song_id'] }}">
+                <td>
+                  <input type="checkbox" class="song-checkbox song-checkbox-top" name="song_ids"
+                    value="{{ s['song_id'] }}" data-song-id="{{ s['song_id'] }}" checked>
+                </td>
+                <td>
+                  {% if s['cover_url'] %}
+                  <img src="{{ s['cover_url'] }}" alt="cover" class="cover-thumb">
+                  {% endif %}
+                </td>
+                <td>{{ s['title'] }}</td>
+                <td>{{ s['artist'] or '-' }}</td>
+                <td>{{ s['album'] or '-' }}</td>
+              </tr>
+              {% endfor %}
               {% endif %}
             </tbody>
           </table>
@@ -205,13 +318,8 @@
       <section class="section">
         <h2 class="section__title">노래 검색</h2>
         <div class="search">
-          <input
-            type="text"
-            name="q"
-            class="search__input"
-            placeholder="제목/아티스트/앨범 검색"
-            value="{{ search_query or '' }}"
-          >
+          <input type="text" name="q" class="search__input" placeholder="제목/아티스트/앨범 검색"
+            value="{{ search_query or '' }}">
           <button type="submit" name="action" value="search" class="search__button">
             검색
           </button>
@@ -223,55 +331,46 @@
         <h2 class="section__title">노래 선택</h2>
 
         {% if songs and songs|length > 0 %}
-          <div class="table-wrapper">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>선택</th>
-                  <th>커버</th>
-                  <th>제목</th>
-                  <th>아티스트</th>
-                  <th>앨범</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for s in songs %}
-                  <tr data-song-id="{{ s['song_id'] }}">
-                    <td>
-                      <input
-                        type="checkbox"
-                        class="song-checkbox song-checkbox-bottom"
-                        name="song_ids"
-                        value="{{ s['song_id'] }}"
-                        data-song-id="{{ s['song_id'] }}"
-                        {% if selected_song_ids and s['song_id'] in selected_song_ids %}checked{% endif %}
-                      >
-                    </td>
-                    <td>
-                      {% if s['cover_url'] %}
-                        <img src="{{ s['cover_url'] }}" alt="cover" class="cover-thumb">
-                      {% endif %}
-                    </td>
-                    <td>{{ s['title'] }}</td>
-                    <td>{{ s['artist'] or '-' }}</td>
-                    <td>{{ s['album'] or '-' }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>선택</th>
+                <th>커버</th>
+                <th>제목</th>
+                <th>아티스트</th>
+                <th>앨범</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in songs %}
+              <tr data-song-id="{{ s['song_id'] }}">
+                <td>
+                  <input type="checkbox" class="song-checkbox song-checkbox-bottom" name="song_ids"
+                    value="{{ s['song_id'] }}" data-song-id="{{ s['song_id'] }}" {% if selected_song_ids and
+                    s['song_id'] in selected_song_ids %}checked{% endif %}>
+                </td>
+                <td>
+                  {% if s['cover_url'] %}
+                  <img src="{{ s['cover_url'] }}" alt="cover" class="cover-thumb">
+                  {% endif %}
+                </td>
+                <td>{{ s['title'] }}</td>
+                <td>{{ s['artist'] or '-' }}</td>
+                <td>{{ s['album'] or '-' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
 
-          <button type="submit"
-                  name="action"
-                  value="save"
-                  class="form__submit"
-                  id="save-button">
-            {{ '플레이리스트 수정 저장' if mode == 'edit' else '플레이리스트 저장' }}
-          </button>
+        <button type="submit" name="action" value="save" class="form__submit" id="save-button">
+          {{ '플레이리스트 수정 저장' if mode == 'edit' else '플레이리스트 저장' }}
+        </button>
         {% else %}
-          <div class="empty-state">
-            검색 결과가 없습니다.
-          </div>
+        <div class="empty-state">
+          검색 결과가 없습니다.
+        </div>
         {% endif %}
       </section>
     </form>
@@ -280,13 +379,13 @@
   <script>
     // 제목/설명 없으면 저장 버튼 비활성화
     const titleInput = document.getElementById('playlist-title');
-    const descInput  = document.getElementById('playlist-description');
-    const saveBtn    = document.getElementById('save-button');
+    const descInput = document.getElementById('playlist-description');
+    const saveBtn = document.getElementById('save-button');
 
     function checkValid() {
       if (!saveBtn) return;
       const hasTitle = titleInput.value.trim().length > 0;
-      const hasDesc  = descInput.value.trim().length > 0;
+      const hasDesc = descInput.value.trim().length > 0;
       saveBtn.disabled = !(hasTitle && hasDesc);
     }
 
@@ -299,9 +398,9 @@
     // ====== 선택된 노래 테이블 실시간 동기화 ======
 
     function updateSelectedEmptyState() {
-      const tbody   = document.getElementById('selected-tbody');
+      const tbody = document.getElementById('selected-tbody');
       const wrapper = document.getElementById('selected-wrapper');
-      const empty   = document.getElementById('selected-empty');
+      const empty = document.getElementById('selected-empty');
 
       if (!tbody || !wrapper || !empty) return;
 
@@ -416,4 +515,5 @@
     });
   </script>
 </body>
+
 </html>
