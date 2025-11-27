@@ -7,20 +7,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
-    /* GLOBAL */
+    /* ===== GLOBAL ===== */
+    * { box-sizing: border-box; }
     body.app-body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #121212;
-      /* 다크 배경 */
+      background-color: #121212; /* 다크 배경 */
       color: #e0e0e0;
+      display: flex;
     }
 
-    .page {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 24px 16px 40px;
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 220px;
+      background-color: #1a1a1a;
+      border-right: 1px solid #2a2a2a;
+      height: 100vh;
+      padding: 20px 16px;
+      position: fixed;
+      left: 0;
+      top: 0;
     }
+    .sidebar__username {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 24px;
+    }
+    .sidebar__menu {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .sidebar__menu a {
+      text-decoration: none;
+      color: #d0d0d0;
+      padding: 8px;
+      border-radius: 4px;
+      display: block;
+    }
+    .sidebar__menu a:hover {
+      background-color: #2b2b2b;
+      color: #fff;
+    }
+
+    /* ===== PAGE CONTENT ===== */
+    .page {
+      max-width: 900px; /* 콘텐츠 최대 너비 */
+      margin-left: calc(220px + (100vw - 220px - 900px)/2); /* 사이드바 제외 후 중앙 */
+      margin-right: auto;
+      padding: 24px 16px 40px;
+      flex: 1 1 auto;
+    }
+
 
     .page__header {
       margin-bottom: 16px;
@@ -150,6 +190,99 @@
       background-color: #1c7f33;
     }
 
+    /* ROW: 폼 왼쪽(입력) + 오른쪽(미리보기) 배치 */
+    .cover-row {
+      display: flex;
+      gap: 18px;
+      align-items: start;
+      flex-wrap: wrap;
+    }
+
+    .cover-row__left {
+      flex: 1 1 420px; /* 왼쪽은 가변, 최소 너비 확보 */
+      min-width: 260px;
+    }
+
+    .cover-row__right {
+      width: 220px; /* 미리보기 박스 크기 (정사각) */
+      min-width: 140px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateY(7px);
+    }
+
+    /* COVER PREVIEW (1:1) */
+    .cover-preview {
+      width: 220px;
+      aspect-ratio: 1 / 1;
+      border-radius: 8px;
+      background: linear-gradient(180deg,#141414,#1c1c1c);
+      border: 1px solid #2a2a2a;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .cover-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .cover-placeholder {
+      color: #9e9e9e;
+      font-size: 13px;
+      text-align: center;
+      padding: 8px;
+    }
+
+    /* 로딩 오버레이 */
+    .preview-overlay {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.35);
+      color: #fff;
+      font-size: 13px;
+      z-index: 5;
+    }
+
+    .preview-overlay.show {
+      display: flex;
+    }
+
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid rgba(255,255,255,0.12);
+      border-top-color: rgba(255,255,255,0.9);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .preview-error {
+      position: absolute;
+      bottom: 6px;
+      left: 6px;
+      right: 6px;
+      padding: 6px 8px;
+      background: rgba(255, 60, 60, 0.12);
+      color: #ff8b8b;
+      font-size: 12px;
+      border-radius: 6px;
+      text-align: center;
+      display: none;
+      z-index: 6;
+    }
+    .preview-error.show { display: block; }
+
     /* TABLE */
     .table-wrapper {
       background-color: #1e1e1e;
@@ -221,55 +354,105 @@
       font-size: 13px;
       margin-bottom: 8px;
     }
+
+    /* 반응형: 화면 좁을 때 미리보기 아래로 내림 */
+    @media (max-width: 720px) {
+      .cover-row { gap: 12px; }
+      .cover-row__right { width: 160px; }
+      .cover-preview { width: 160px; }
+    }
   </style>
 </head>
 
 <body class="app-body">
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="sidebar">
+    {% if session.get('user_id') %}
+      <div class="sidebar__username">{{ session['username'] }} 님</div>
+    {% else %}
+      <div class="sidebar__username">Guest</div>
+    {% endif %}
+
+    <ul class="sidebar__menu">
+      {% if session.get('user_id') %}
+      <li><a href="{{ url_for('logout') }}">로그아웃</a></li>
+      {% else %}
+      <li><a href="{{ url_for('login') }}">로그인</a></li>
+      {% endif %}
+
+      <li><a href="{{ url_for('index') }}">플레이리스트</a></li>
+
+      {% if session.get('user_id') %}
+      <li><a href="{{ url_for('create_playlist') }}">+ 플레이리스트 추가</a></li>
+      {% endif %}
+
+      {% if session.get('is_admin') %}
+      <li><a href="{{ url_for('manage_songs') }}">🎛 노래 관리</a></li>
+      {% endif %}
+    </ul>
+  </aside>
+
+  <!-- ===== PAGE CONTENT ===== -->
   <div class="page">
     <!-- 상단 헤더 -->
     <header class="page__header">
       <h1 class="page__title">
         {{ '플레이리스트 수정' if mode == 'edit' else '새 플레이리스트 만들기' }}
       </h1>
-      <p class="page__back">
+      <!-- <p class="page__back">
         <a href="{{ url_for('index') }}">← 플레이리스트 목록으로 돌아가기</a>
-      </p>
+      </p> -->
     </header>
 
-    <!-- 하나의 폼으로 전체 처리 (검색 + 저장) -->
+    <!-- 폼 및 나머지 콘텐츠: 기존 내용 그대로 유지 -->
     <form method="POST"
       action="{% if mode == 'edit' %}{{ url_for('edit_playlist', playlist_id=playlist_id) }}{% else %}{{ url_for('create_playlist') }}{% endif %}"
       class="form">
-
+      
       {% if error %}
       <div class="error-msg">{{ error }}</div>
       {% endif %}
 
-      <!-- 1) 플레이리스트 정보 -->
+      <!-- 플레이리스트 정보 + 커버 미리보기 -->
       <section class="section">
         <h2 class="section__title">플레이리스트 정보</h2>
-
-        <div class="form__group">
-          <label class="form__label" for="playlist-title">제목</label>
-          <input id="playlist-title" type="text" name="title" class="form__input" value="{{ title_value or '' }}"
-            required>
-        </div>
-
-        <div class="form__group">
-          <label class="form__label" for="playlist-description">설명</label>
-          <textarea id="playlist-description" name="description" class="form__textarea"
-            rows="3">{{ description_value or '' }}</textarea>
-        </div>
-
-        <div class="form__group">
-          <label class="form__label" for="playlist-cover-url">플레이리스트 커버 URL</label>
-          <input id="playlist-cover-url" type="text" name="cover_url" class="form__input" placeholder="https://..."
-            value="{{ cover_url_value or '' }}">
-          <small style="font-size:12px; color:#666;">
-            비워두면 선택된 곡들 중 하나의 커버 이미지가 자동으로 사용됩니다.
-          </small>
+        <div class="cover-row">
+          <div class="cover-row__left">
+            <div class="form__group">
+              <label class="form__label" for="playlist-title">제목</label>
+              <input id="playlist-title" type="text" name="title" class="form__input"
+                value="{{ title_value or '' }}" required>
+            </div>
+            <div class="form__group">
+              <label class="form__label" for="playlist-description">설명</label>
+              <textarea id="playlist-description" name="description" class="form__textarea"
+                rows="3">{{ description_value or '' }}</textarea>
+            </div>
+            <div class="form__group">
+              <label class="form__label" for="playlist-cover-url">플레이리스트 커버 URL</label>
+              <input id="playlist-cover-url" type="text" name="cover_url" class="form__input"
+                placeholder="https://..." value="{{ cover_url_value or '' }}">
+              <small style="font-size:12px; color:#666;">
+                비워두면 선택된 곡들 중 하나의 커버 이미지가 자동으로 사용됩니다.
+              </small>
+            </div>
+          </div>
+          <div class="cover-row__right" aria-hidden="false">
+            <div class="cover-preview" id="coverPreviewBox" aria-label="커버 미리보기">
+              <div class="preview-overlay" id="previewOverlay">
+                <div class="spinner" aria-hidden="true"></div>
+                <div class="preview-overlay-text">이미지 로딩...</div>
+              </div>
+              <img id="coverPreviewImg" src="" alt="플레이리스트 커버 미리보기" style="display:none;">
+              <div class="cover-placeholder" id="coverPlaceholder">
+                No cover<br><small style="color:#888;">커버 URL을 입력해보세요</small>
+              </div>
+              <div class="preview-error" id="coverPreviewError">이미지 불러오기 실패</div>
+            </div>
+          </div>
         </div>
       </section>
+
 
       <!-- 1.5) 선택된 노래 (위쪽 테이블) -->
       <section class="section">
@@ -482,6 +665,102 @@
       updateSelectedEmptyState();
     }
 
+    // ====== 커버 URL 미리보기 기능 ======
+    (function () {
+      const input = document.getElementById('playlist-cover-url');
+      const img = document.getElementById('coverPreviewImg');
+      const placeholder = document.getElementById('coverPlaceholder');
+      const overlay = document.getElementById('previewOverlay');
+      const errorBox = document.getElementById('coverPreviewError');
+
+      // helper: show placeholder
+      function showPlaceholder() {
+        img.style.display = 'none';
+        img.src = '';
+        placeholder.style.display = 'block';
+        errorBox.classList.remove('show');
+      }
+
+      // helper: show error
+      function showError(text) {
+        img.style.display = 'none';
+        placeholder.style.display = 'block';
+        errorBox.textContent = text || '이미지 불러오기 실패';
+        errorBox.classList.add('show');
+        overlay.classList.remove('show');
+      }
+
+      // helper: show image
+      function showImage(src) {
+        overlay.classList.remove('show');
+        errorBox.classList.remove('show');
+        placeholder.style.display = 'none';
+        img.src = src;
+        img.style.display = 'block';
+      }
+
+      // attempt to load a URL and update preview (with loading + error handling)
+      function updatePreview(url) {
+        url = (url || '').trim();
+        if (!url) {
+          showPlaceholder();
+          return;
+        }
+
+        // show loading
+        overlay.classList.add('show');
+        errorBox.classList.remove('show');
+
+        // preload with JS Image to catch load/error
+        const pre = new Image();
+        pre.onload = function () {
+          showImage(url);
+        };
+        pre.onerror = function () {
+          showError('이미지 불러오기 실패 (유효한 이미지 URL인지 확인하세요)');
+        };
+
+        // set a timeout in case remote server hangs
+        let timedOut = false;
+        const to = setTimeout(() => {
+          timedOut = true;
+          pre.src = ''; // cancel
+          showError('이미지 로드 시간 초과');
+        }, 8000);
+
+        pre.src = url;
+        // on success or error we clear timeout in handlers:
+        pre.onload = function () {
+          if (timedOut) return;
+          clearTimeout(to);
+          showImage(url);
+        };
+        pre.onerror = function () {
+          if (timedOut) return;
+          clearTimeout(to);
+          showError('이미지 불러오기 실패 (CORS 또는 잘못된 URL)');
+        };
+      }
+
+      if (!input) return;
+
+      // Update on input (debounced) and on blur
+      let timer = null;
+      input.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => updatePreview(input.value), 300);
+      });
+      input.addEventListener('blur', () => updatePreview(input.value));
+
+      // Initialize from server-rendered value (if any)
+      document.addEventListener('DOMContentLoaded', () => {
+        const initial = input.value || "{{ cover_url_value or '' }}";
+        // If template inserted quotes or escaped values, this still works (empty string otherwise)
+        updatePreview(initial);
+      });
+    })();
+
+    // ====== 기존 선택된 노래 로직 초기화 ======
     document.addEventListener('DOMContentLoaded', () => {
       // 처음 로드 시: 서버에서 내려준 selected_songs 기준으로 보이기 상태 조정
       updateSelectedEmptyState();

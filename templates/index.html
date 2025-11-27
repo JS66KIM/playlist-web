@@ -40,6 +40,10 @@
             margin-left: 220px;
             width: 100%;
             padding: 24px 16px 40px;
+
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
         .page__title {
             text-align: center;
@@ -47,46 +51,68 @@
             letter-spacing: 2px;
             margin: 0 0 20px;
         }
+        .hero {
+            display: flex;
+            justify-content: center;
+
+            margin-top: auto;
+            margin-bottom: auto;
+        }
 
         /* ===== HERO (CARD CAROUSEL) ===== */
 /* ===== HERO (CARD CAROUSEL) ===== */
 :root {
     /* 간격 조절 */
-    --hero-gap-near: 50%;
-    --hero-gap-far: 100%;
+    --hero-gap-near: 60%;
+    --hero-gap-far: 120%;
 
     /* 크기감 */
     --hero-scale-center: 1;
-    --hero-scale-near: 0.8;
-    --hero-scale-far: 0.6;
+    --hero-scale-near: 0.86;
+    --hero-scale-far: 0.72;
 
     /* 흐림 정도 */
-    --hero-blur-near: 0.8px;
-    --hero-blur-far: 1px;
+    --hero-blur-near: 0.9px;
+    --hero-blur-far: 1.25px;
 
     /* 밝기(어둡기) 값 */
-    --hero-dim-center: 0.75; /* 중앙도 살짝 어둡게 */
-    --hero-dim-near: 0.60;   /* near 카드 더 어둡게 */
-    --hero-dim-far: 0.45;    /* far 카드 가장 어둡게 */
+    --hero-dim-center: 1;
+    --hero-dim-near: 0.8;
+    --hero-dim-far: 0.6;
 }
 
-.hero {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 28px;
-}
-
+/* HERO 컨테이너 (배경 박스 크게, 카드가 튀어나오지 않도록 hidden) */
 .hero__stage {
-    width: min(960px, 92vw);
-    height: clamp(240px, 36vw, 380px);
-    background: #1f1f1f;
+    width: min(1200px, 96vw);
+    height: clamp(320px, 42vw, 520px);
+    background: linear-gradient(180deg, #1f1f1f 0%, #181818 100%);
     border: 1px solid #2a2a2a;
-    border-radius: 22px;
+    border-radius: 28px;
     position: relative;
-    overflow: hidden;
-    padding: 24px 0;
+    overflow: hidden;           /* 카드가 배경 밖으로 튀어나오지 않도록 변경 */
+    padding: 28px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
+/* 중앙에 보이는 외곽 박스 (카드 그룹의 중심 아웃라인) */
+.hero__outline {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    /* 너비/높이는 반응형으로 조정 (필요시 값 수정) */
+    width: min(680px, 72%);
+    height: min(420px, 78%);
+    border-radius: 24px;
+    border: 1px dashed rgba(255,255,255,0.06);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.35) inset;
+    pointer-events: none;
+    z-index: 2; /* 카드들이 이 위에 올라오도록 낮은 z-index */
+}
+
+/* .hero__rail는 카드 배치를 돕는 레이어 (터치/이벤트는 카드만 받음) */
 .hero__rail {
     position: absolute;
     inset: 0;
@@ -95,53 +121,63 @@
     pointer-events: none;
 }
 
+/* 카드: 정사각 비율(1:1)으로 변경, 반응형 유지 */
 .hero__card {
     position: absolute;
-    width: clamp(150px, 24vw, 280px);
-    height: clamp(170px, 27vw, 320px);
-    border-radius: 18px;
+    /* 너비 기반으로 크기 결정하고 aspect-ratio로 1:1 유지 */
+    width: clamp(220px, 28vw, 360px);
+    aspect-ratio: 1 / 1;            /* <-- 핵심: 정확한 1:1 비율 */
+    border-radius: 20px;
     overflow: hidden;
 
-    /* ✨ 카드 그림자 강화 */
+    /* 약간 더 강한 그림자 */
     box-shadow:
-        0px 18px 35px rgba(0, 0, 0, 0.8),
-        0px 8px 15px rgba(0,0,0,1);
+        0px 22px 44px rgba(0, 0, 0, 0.85),
+        0px 10px 20px rgba(0,0,0,1);
 
-    transition: transform 0.45s ease, filter 0.45s ease, z-index 0.2s ease;
+    transition: transform 0.45s cubic-bezier(.2,.9,.2,1), filter 0.45s ease, z-index 0.2s ease;
     cursor: pointer;
     pointer-events: auto;
+
+    /* 카드는 항상 수직 중앙에 위치하도록 top 기준 설정.
+       (transform에서 translateY(-50%)를 각 포지션 클래스에 포함) */
+    top: 50%;
 }
 
+/* 카드 이미지: cover 유지 */
 .hero__card img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 /* --------------------------------------------------------------
-   각 포지션별 transform + 밝기/흐림 효과
+   포지션별 transform: translateX(…) translateY(-50%) scale(…)
+   (translateY(-50%)로 수직 중앙 정렬을 보장)
 -------------------------------------------------------------- */
 
 /* 중앙 카드 */
 .pos-center {
-    transform: translateX(0) scale(var(--hero-scale-center));
-    z-index: 5;
+    transform: translateX(0) translateY(-50%) scale(calc(var(--hero-scale-center) * 1.02));
+    z-index: 6;
     filter: brightness(var(--hero-dim-center));
 }
 
 /* near 카드 (좌/우 1열) */
 .pos-near-left,
 .pos-near-right {
-    transform: translateX(var(--_nearX)) scale(var(--hero-scale-near));
-    z-index: 4;
+    transform: translateX(var(--_nearX)) translateY(-50%) scale(var(--hero-scale-near));
+    z-index: 5;
     filter: brightness(var(--hero-dim-near)) blur(var(--hero-blur-near));
 }
 
 /* far 카드 (좌/우 2열) */
 .pos-far-left,
 .pos-far-right {
-    transform: translateX(var(--_farX)) scale(var(--hero-scale-far));
-    z-index: 3;
+    transform: translateX(var(--_farX)) translateY(-50%) scale(var(--hero-scale-far));
+    z-index: 4;
     filter: brightness(var(--hero-dim-far)) blur(var(--hero-blur-far));
 }
 
@@ -151,6 +187,7 @@
 
 .pos-far-left   { --_farX: calc(-1 * var(--hero-gap-far)); }
 .pos-far-right  { --_farX: var(--hero-gap-far); }
+
 
         /* ===== PLAYLIST LIST ===== */
         .playlist-list { list-style: none; padding: 0; margin: 0; }
