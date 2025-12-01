@@ -85,7 +85,11 @@
 .hero__stage {
     width: min(1200px, 96vw);
     height: clamp(320px, 42vw, 520px);
-    background: linear-gradient(180deg, #1f1f1f 0%, #181818 100%);
+    background:
+    radial-gradient(circle at 20% 20%, rgb(255, 95, 42), transparent 60%),
+    radial-gradient(circle at 20% 20%, rgba(126, 56, 255, 0.66), transparent 60%),
+    linear-gradient(140deg, #1f1f21 0%, #32386a 50%, #240f43 90%);
+
     border: 1px solid #2a2a2a;
     border-radius: 28px;
     position: relative;
@@ -188,29 +192,41 @@
 .pos-far-left   { --_farX: calc(-1 * var(--hero-gap-far)); }
 .pos-far-right  { --_farX: var(--hero-gap-far); }
 
+/* HERO와 PLAYLIST 사이 공간 */
+.hero-message {
+    margin: 40px 0; /* 위아래 간격 */
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    color: #ff7f50; /* 강조 색상 */
+    letter-spacing: 1px;
+    font-family: 'Noto Sans KR', 'Arial', sans-serif; /* 원하는 글꼴 추가 */
+}
 
-        /* ===== PLAYLIST LIST ===== */
-        .playlist-list { list-style: none; padding: 0; margin: 0; }
-        .playlist-list__item {
-            background-color: #1e1e1e;
-            border: 1px solid #2c2c2c;
-            padding: 14px;
-            border-radius: 6px;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-        .playlist-list__thumb img {
-            width: 60px; height: 60px; object-fit: cover; border-radius: 4px;
-        }
-        .playlist-list__title a { color: #fff; text-decoration: none; }
-        .playlist-list__title a:hover { text-decoration: underline; }
-        .empty-state {
-            padding: 16px;
-            background: #1e1e1e;
-            border: 1px solid #2c2c2c;
-            border-radius: 6px;
-        }
+
+
+/* ===== PLAYLIST LIST ===== */
+.playlist-list { list-style: none; padding: 0; margin: 0; }
+.playlist-list__item {
+    background-color: #1e1e1e;
+    border: 1px solid #2c2c2c;
+    padding: 14px;
+    border-radius: 6px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+.playlist-list__thumb img {
+    width: 60px; height: 60px; object-fit: cover; border-radius: 4px;
+    }
+.playlist-list__title a { color: #fff; text-decoration: none; }
+.playlist-list__title a:hover { text-decoration: underline; }
+.empty-state {
+    padding: 16px;
+    background: #1e1e1e;
+    border: 1px solid #2c2c2c;
+    border-radius: 6px;
+}
     </style>
 </head>
 
@@ -251,6 +267,12 @@
         <section class="hero">
             <div class="hero__stage" id="heroStage"></div>
         </section>
+
+        <!-- 하루마다 랜덤 플레이리스트 문구 -->
+        <div class="hero-message">
+            하루마다 랜덤 플레이리스트! 🎵
+        </div>
+
 
         <!-- PLAYLIST LIST -->
         <main class="page__content">

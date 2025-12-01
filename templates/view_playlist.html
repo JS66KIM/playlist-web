@@ -6,17 +6,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
-        /* ===== 공통 레이아웃 ===== */
+        /* ===== GLOBAL ===== */
+        * { box-sizing: border-box; }
         body.app-body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
         }
 
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 220px;
+            background-color: #1a1a1a;
+            border-right: 1px solid #2a2a2a;
+            height: 100vh;
+            padding: 20px 16px;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+        .sidebar__username { font-size: 18px; font-weight: bold; margin-bottom: 24px; }
+        .sidebar__menu { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+        .sidebar__menu a {
+            text-decoration: none;
+            color: #d0d0d0;
+            padding: 8px;
+            border-radius: 4px;
+            display: block;
+        }
+        .sidebar__menu a:hover { background-color: #2b2b2b; color: #fff; }
+
+        /* ===== MAIN PAGE ===== */
         .page {
-            max-width: 960px;
-            margin: 0 auto;
+            margin-left: 220px;
+            width: 100%;
             padding: 24px 16px 40px;
+            min-height: 100vh;
         }
 
         .page__header {
@@ -25,55 +52,44 @@
 
         .page__title {
             margin: 0 0 8px;
-            font-size: 24px;
-        }
-
-        .page__back {
-            font-size: 14px;
-            margin-bottom: 8px;
+            font-size: 28px;
+            text-align: center;
+            color: #fff;
         }
 
         .page__back a {
             color: #007bff;
             text-decoration: none;
         }
-
-        .page__back a:hover {
-            text-decoration: underline;
-        }
+        .page__back a:hover { text-decoration: underline; }
 
         .page__divider {
             border: none;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid #2a2a2a;
             margin: 16px 0 20px;
         }
 
-        /* ===== 섹션 공통 ===== */
-        .section {
-            margin-bottom: 28px;
-        }
-
-        .section__title {
-            margin: 0 0 12px;
-            font-size: 18px;
-        }
-
-        /* ===== 플레이리스트 메타 ===== */
+        /* ===== PLAYLIST DETAIL ===== */
         .playlist-meta {
-            background-color: #fff;
+            background-color: #1e1e1e;
             border-radius: 6px;
-            border: 1px solid #ddd;
+            border: 1px solid #2c2c2c;
             padding: 12px 14px;
             font-size: 14px;
             line-height: 1.6;
+            color: #e0e0e0;
         }
-
         .playlist-meta strong {
             display: inline-block;
             width: 60px;
         }
 
-        /* ===== 버튼 공통 ===== */
+        .playlist-actions {
+            margin: 16px 0 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
         .button {
             padding: 8px 14px;
             border-radius: 4px;
@@ -84,127 +100,107 @@
             background-color: #007bff;
             color: #ffffff;
         }
+        .button--danger { background-color: #dc3545; }
+        .button:hover { opacity: 0.93; }
 
-        .button--danger {
-            background-color: #dc3545;
-        }
-
-        .button:hover {
-            opacity: 0.93;
-        }
-
-        .playlist-actions {
-            margin: 16px 0 8px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        /* ===== 곡 목록 테이블 ===== */
+        /* ===== SONG TABLE ===== */
         .table-wrapper {
-            background-color: #fff;
+            background-color: #1e1e1e;
             border-radius: 6px;
-            border: 1px solid #ddd;
+            border: 1px solid #2c2c2c;
             overflow-x: auto;
         }
-
         .table {
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
+            color: #e0e0e0;
         }
-
         .table th,
         .table td {
             padding: 8px 10px;
-            border: 1px solid #ccc;
+            border: 1px solid #2c2c2c;
             text-align: left;
-            vertical-align: middle;
         }
-
         .table thead {
-            background-color: #f0f0f0;
+            background-color: #2a2a2a;
         }
-
-        .table th:nth-child(1),
-        .table td:nth-child(1) {
-            width: 60px;
-            text-align: center;
-        }
-
-        .song-title {
-            font-weight: 600;
-        }
-
+        .song-title { font-weight: 600; }
         .empty-state {
             font-size: 14px;
-            background-color: #fff;
+            background-color: #1e1e1e;
             padding: 16px 14px;
             border-radius: 6px;
-            border: 1px solid #ddd;
+            border: 1px solid #2c2c2c;
+            color: #ccc;
         }
+
+        img { border-radius: 8px; }
+
     </style>
 </head>
 <body class="app-body">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        {% if session.get('user_id') %}
+            <div class="sidebar__username">{{ session['username'] }} 님</div>
+        {% else %}
+            <div class="sidebar__username">Guest</div>
+        {% endif %}
+
+        <ul class="sidebar__menu">
+            {% if session.get('user_id') %}
+                <li><a href="{{ url_for('logout') }}">로그아웃</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login') }}">로그인</a></li>
+            {% endif %}
+            <li><a href="{{ url_for('index') }}">플레이리스트</a></li>
+            {% if session.get('user_id') %}
+                <li><a href="{{ url_for('create_playlist') }}">+ 플레이리스트 추가</a></li>
+            {% endif %}
+            {% if session.get('is_admin') %}
+                <li><a href="{{ url_for('manage_songs') }}">🎛 노래 관리</a></li>
+            {% endif %}
+        </ul>
+    </aside>
+
+    <!-- MAIN CONTENT -->
     <div class="page">
-        <!-- 헤더 -->
         <header class="page__header">
-            <h1 class="page__title">
-                {{ playlist["title"] or "제목 없음" }}
-            </h1>
-            <p class="page__back">
-                <a href="{{ url_for('index') }}">← 플레이리스트 목록으로 돌아가기</a>
-            </p>
+            <h1 class="page__title">{{ playlist["title"] or "제목 없음" }}</h1>
+            <p class="page__back"><a href="{{ url_for('index') }}">← 플레이리스트 목록으로 돌아가기</a></p>
         </header>
 
-        <!-- 플레이리스트 커버 이미지 -->
         {% if display_cover_url %}
             <div style="margin-bottom:16px;">
-                <img src="{{ display_cover_url }}"
-                     alt="playlist cover"
-                     style="width:120px; height:120px; object-fit:cover; border-radius:8px;">
+                <img src="{{ display_cover_url }}" alt="playlist cover" style="width:120px; height:120px; object-fit:cover;">
             </div>
         {% endif %}
 
-        <!-- 플레이리스트 정보 -->
-        <section class="section">
-            <div class="playlist-meta">
-                <p><strong>작성자:</strong> {{ playlist["username"] or "알 수 없음" }}</p>
-                <p><strong>생성일:</strong> {{ playlist["created_at"] or "날짜 없음" }}</p>
-                <p><strong>설명:</strong> {{ playlist["description"] or "설명 없음" }}</p>
-            </div>
-
-            <!-- 수정/삭제 버튼 (작성자 또는 관리자만) -->
-            {% if session.get('user_id') == playlist['user_id'] or session.get('is_admin') %}
-                <div class="playlist-actions">
-                    <!-- 수정 버튼: create_playlist(edit 모드)로 이동 -->
-                    <form method="GET"
-                          action="{{ url_for('edit_playlist', playlist_id=playlist['playlist_id']) }}">
-                        <button type="submit" class="button">
-                            ✏️ 플레이리스트 수정
-                        </button>
-                    </form>
-
-                    <!-- 삭제 버튼 -->
-                    <form method="POST"
-                          action="{{ url_for('delete_playlist', playlist_id=playlist['playlist_id']) }}"
-                          onsubmit="return confirm('정말 이 플레이리스트를 삭제하시겠습니까?');">
-                        <button type="submit" class="button button--danger">
-                            🗑 플레이리스트 삭제
-                        </button>
-                    </form>
-                </div>
-            {% endif %}
+        <section class="playlist-meta">
+            <p><strong>작성자:</strong> {{ playlist["username"] or "알 수 없음" }}</p>
+            <p><strong>생성일:</strong> {{ playlist["created_at"] or "날짜 없음" }}</p>
+            <p><strong>설명:</strong> {{ playlist["description"] or "설명 없음" }}</p>
         </section>
+
+        {% if session.get('user_id') == playlist['user_id'] or session.get('is_admin') %}
+            <div class="playlist-actions">
+                <form method="GET" action="{{ url_for('edit_playlist', playlist_id=playlist['playlist_id']) }}">
+                    <button type="submit" class="button">✏️ 플레이리스트 수정</button>
+                </form>
+                <form method="POST" action="{{ url_for('delete_playlist', playlist_id=playlist['playlist_id']) }}"
+                      onsubmit="return confirm('정말 이 플레이리스트를 삭제하시겠습니까?');">
+                    <button type="submit" class="button button--danger">🗑 플레이리스트 삭제</button>
+                </form>
+            </div>
+        {% endif %}
 
         <hr class="page__divider">
 
-        <!-- 수록곡 목록 -->
-        <section class="section">
-            <h2 class="section__title">
-                수록곡 목록 ({{ songs|length }}곡)
-            </h2>
-
+        <!-- SONG LIST -->
+        <section>
+            <h2 class="section__title">수록곡 목록 ({{ songs|length }}곡)</h2>
             {% if songs and songs|length > 0 %}
                 <div class="table-wrapper">
                     <table class="table">
@@ -229,9 +225,7 @@
                     </table>
                 </div>
             {% else %}
-                <div class="empty-state">
-                    이 플레이리스트에는 아직 노래가 없습니다.
-                </div>
+                <div class="empty-state">이 플레이리스트에는 아직 노래가 없습니다.</div>
             {% endif %}
         </section>
     </div>
