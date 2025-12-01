@@ -18,6 +18,33 @@ def get_db_connection():
 
 
 # =========================
+# 최초 실행 시 한 번: 중복 정리 + UNIQUE 인덱스 보강
+# =========================
+def ensure_guardrails():
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # 1) playlist_songs 중복 레코드 정리 (가장 이른 rowid만 유지)
+    cur.execute("""
+        DELETE FROM playlist_songs
+        WHERE rowid NOT IN (
+            SELECT MIN(rowid)
+            FROM playlist_songs
+            GROUP BY playlist_id, song_id
+        )
+    """)
+
+    # 2) playlist_id + song_id 조합 중복 금지 인덱스 (없으면 생성)
+    cur.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS ux_playlist_song
+        ON playlist_songs(playlist_id, song_id)
+    """)
+
+    conn.commit()
+    conn.close()
+
+
+# =========================
 # 공통 헬퍼 함수들
 # =========================
 def search_songs(cur, query):
@@ -123,6 +150,9 @@ def handle_playlist_form(mode='create', playlist_id=None):
         except ValueError:
             selected_song_ids = []
 
+        # [FIX] 저장/검색 공통: 선택값 중복 제거(순서 유지)
+        selected_song_ids = list(dict.fromkeys(selected_song_ids))
+
         # ----- 1) 검색 버튼 -----
         if action == 'search':
             songs = search_songs(cur, search_query)
@@ -191,10 +221,13 @@ def handle_playlist_form(mode='create', playlist_id=None):
                 """, (user_id, title, description, cover_url))
                 new_playlist_id = cur.lastrowid
 
+                # [FIX] UPSERT로 안전 삽입(중복오면 track_order 갱신)
                 for order, song_id in enumerate(selected_song_ids, start=1):
                     cur.execute("""
                         INSERT INTO playlist_songs (playlist_id, song_id, track_order)
                         VALUES (?, ?, ?)
+                        ON CONFLICT(playlist_id, song_id)
+                        DO UPDATE SET track_order = excluded.track_order
                     """, (new_playlist_id, song_id, order))
 
             # ---------- 수정 모드 ----------
@@ -212,11 +245,14 @@ def handle_playlist_form(mode='create', playlist_id=None):
                     WHERE playlist_id = ?
                 """, (title, description, cover_url, playlist_id))
 
+                # 기존 곡 구성 초기화 후 업서트
                 cur.execute("DELETE FROM playlist_songs WHERE playlist_id = ?", (playlist_id,))
                 for order, song_id in enumerate(selected_song_ids, start=1):
                     cur.execute("""
                         INSERT INTO playlist_songs (playlist_id, song_id, track_order)
                         VALUES (?, ?, ?)
+                        ON CONFLICT(playlist_id, song_id)
+                        DO UPDATE SET track_order = excluded.track_order
                     """, (playlist_id, song_id, order))
 
             conn.commit()
@@ -399,7 +435,7 @@ def view_playlist(playlist_id):
         conn.close()
         return "플레이리스트를 찾을 수 없습니다.", 404
 
-    # 플레이리스트에 포함된 곡 목록
+    # 플레이리스트에 포함된 곡 목록 (중복 없어야 하지만 정렬 포함)
     cur.execute("""
         SELECT 
             s.song_id,
@@ -682,4 +718,6 @@ def test_db():
 
 
 if __name__ == '__main__':
+    # [FIX] 서버 시작 시 중복 정리 & UNIQUE 인덱스 보강
+    ensure_guardrails()
     app.run(debug=True)

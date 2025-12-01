@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <title>{{ playlist["title"] }} - 플레이리스트 상세</title>
@@ -7,7 +8,10 @@
 
     <style>
         /* ===== GLOBAL ===== */
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
+
         body.app-body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -27,8 +31,21 @@
             left: 0;
             top: 0;
         }
-        .sidebar__username { font-size: 18px; font-weight: bold; margin-bottom: 24px; }
-        .sidebar__menu { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+
+        .sidebar__username {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 24px;
+        }
+
+        .sidebar__menu {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
         .sidebar__menu a {
             text-decoration: none;
             color: #d0d0d0;
@@ -36,7 +53,11 @@
             border-radius: 4px;
             display: block;
         }
-        .sidebar__menu a:hover { background-color: #2b2b2b; color: #fff; }
+
+        .sidebar__menu a:hover {
+            background-color: #2b2b2b;
+            color: #fff;
+        }
 
         /* ===== MAIN PAGE ===== */
         .page {
@@ -61,7 +82,10 @@
             color: #007bff;
             text-decoration: none;
         }
-        .page__back a:hover { text-decoration: underline; }
+
+        .page__back a:hover {
+            text-decoration: underline;
+        }
 
         .page__divider {
             border: none;
@@ -79,6 +103,7 @@
             line-height: 1.6;
             color: #e0e0e0;
         }
+
         .playlist-meta strong {
             display: inline-block;
             width: 60px;
@@ -90,6 +115,7 @@
             flex-wrap: wrap;
             gap: 8px;
         }
+
         .button {
             padding: 8px 14px;
             border-radius: 4px;
@@ -100,8 +126,14 @@
             background-color: #007bff;
             color: #ffffff;
         }
-        .button--danger { background-color: #dc3545; }
-        .button:hover { opacity: 0.93; }
+
+        .button--danger {
+            background-color: #dc3545;
+        }
+
+        .button:hover {
+            opacity: 0.93;
+        }
 
         /* ===== SONG TABLE ===== */
         .table-wrapper {
@@ -110,22 +142,29 @@
             border: 1px solid #2c2c2c;
             overflow-x: auto;
         }
+
         .table {
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
             color: #e0e0e0;
         }
+
         .table th,
         .table td {
             padding: 8px 10px;
             border: 1px solid #2c2c2c;
             text-align: left;
         }
+
         .table thead {
             background-color: #2a2a2a;
         }
-        .song-title { font-weight: 600; }
+
+        .song-title {
+            font-weight: 600;
+        }
+
         .empty-state {
             font-size: 14px;
             background-color: #1e1e1e;
@@ -135,32 +174,70 @@
             color: #ccc;
         }
 
-        img { border-radius: 8px; }
+        img {
+            border-radius: 8px;
+        }
 
+        .playlist-cover {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .playlist-cover img {
+            width: 160px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+        }
+
+        .playlist-meta {
+            text-align: center;
+        }
+
+        /* 테이블 커버 */
+        .cover-cell {
+            width: 68px;
+        }
+
+        .cover-cell img {
+            width: 56px;
+            height: 56px;
+            object-fit: cover;
+            border-radius: 8px;
+            display: block;
+        }
+
+        .table th,
+        .table td {
+            text-align: center;
+        }
     </style>
 </head>
+
 <body class="app-body">
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
         {% if session.get('user_id') %}
-            <div class="sidebar__username">{{ session['username'] }} 님</div>
+        <div class="sidebar__username">{{ session['username'] }} 님</div>
         {% else %}
-            <div class="sidebar__username">Guest</div>
+        <div class="sidebar__username">Guest</div>
         {% endif %}
 
         <ul class="sidebar__menu">
             {% if session.get('user_id') %}
-                <li><a href="{{ url_for('logout') }}">로그아웃</a></li>
+            <li><a href="{{ url_for('logout') }}">로그아웃</a></li>
             {% else %}
-                <li><a href="{{ url_for('login') }}">로그인</a></li>
+            <li><a href="{{ url_for('login') }}">로그인</a></li>
             {% endif %}
             <li><a href="{{ url_for('index') }}">플레이리스트</a></li>
             {% if session.get('user_id') %}
-                <li><a href="{{ url_for('create_playlist') }}">+ 플레이리스트 추가</a></li>
+            <li><a href="{{ url_for('create_playlist') }}">+ 플레이리스트 추가</a></li>
             {% endif %}
             {% if session.get('is_admin') %}
-                <li><a href="{{ url_for('manage_songs') }}">🎛 노래 관리</a></li>
+            <li><a href="{{ url_for('manage_songs') }}">🎛 노래 관리</a></li>
             {% endif %}
         </ul>
     </aside>
@@ -173,10 +250,11 @@
         </header>
 
         {% if display_cover_url %}
-            <div style="margin-bottom:16px;">
-                <img src="{{ display_cover_url }}" alt="playlist cover" style="width:120px; height:120px; object-fit:cover;">
-            </div>
+        <div class="playlist-cover">
+            <img src="{{ display_cover_url }}" alt="playlist cover">
+        </div>
         {% endif %}
+
 
         <section class="playlist-meta">
             <p><strong>작성자:</strong> {{ playlist["username"] or "알 수 없음" }}</p>
@@ -185,15 +263,15 @@
         </section>
 
         {% if session.get('user_id') == playlist['user_id'] or session.get('is_admin') %}
-            <div class="playlist-actions">
-                <form method="GET" action="{{ url_for('edit_playlist', playlist_id=playlist['playlist_id']) }}">
-                    <button type="submit" class="button">✏️ 플레이리스트 수정</button>
-                </form>
-                <form method="POST" action="{{ url_for('delete_playlist', playlist_id=playlist['playlist_id']) }}"
-                      onsubmit="return confirm('정말 이 플레이리스트를 삭제하시겠습니까?');">
-                    <button type="submit" class="button button--danger">🗑 플레이리스트 삭제</button>
-                </form>
-            </div>
+        <div class="playlist-actions">
+            <form method="GET" action="{{ url_for('edit_playlist', playlist_id=playlist['playlist_id']) }}">
+                <button type="submit" class="button">✏️ 플레이리스트 수정</button>
+            </form>
+            <form method="POST" action="{{ url_for('delete_playlist', playlist_id=playlist['playlist_id']) }}"
+                onsubmit="return confirm('정말 이 플레이리스트를 삭제하시겠습니까?');">
+                <button type="submit" class="button button--danger">🗑 플레이리스트 삭제</button>
+            </form>
+        </div>
         {% endif %}
 
         <hr class="page__divider">
@@ -202,32 +280,47 @@
         <section>
             <h2 class="section__title">수록곡 목록 ({{ songs|length }}곡)</h2>
             {% if songs and songs|length > 0 %}
-                <div class="table-wrapper">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>순서</th>
-                                <th>제목</th>
-                                <th>아티스트</th>
-                                <th>앨범</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for song in songs %}
-                                <tr>
-                                    <td>{{ song["track_order"] }}</td>
-                                    <td class="song-title">{{ song["title"] }}</td>
-                                    <td>{{ song["artist"] or "-" }}</td>
-                                    <td>{{ song["album"] or "-" }}</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>순서</th>
+                            <th>커버</th>
+                            <th>제목</th>
+                            <th>아티스트</th>
+                            <th>앨범</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for song in songs %}
+                        <tr>
+                            <!-- 순서 -->
+                            <td>{{ song["track_order"] }}</td>
+
+                            <!-- 커버 이미지 열 추가 -->
+                            <td class="cover-cell">
+                                {% if song["cover_url"] %}
+                                <img src="{{ song["cover_url"] }}" alt="album cover for {{ song['title'] }}">
+                                {% else %}
+                                <span style="font-size:12px;color:#777;">-</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- 기존 열들 -->
+                            <td class="song-title">{{ song["title"] }}</td>
+                            <td>{{ song["artist"] or "-" }}</td>
+                            <td>{{ song["album"] or "-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
             {% else %}
-                <div class="empty-state">이 플레이리스트에는 아직 노래가 없습니다.</div>
+            <div class="empty-state">이 플레이리스트에는 아직 노래가 없습니다.</div>
             {% endif %}
         </section>
     </div>
 </body>
+
 </html>
