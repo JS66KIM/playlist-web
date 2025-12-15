@@ -1,404 +1,432 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>Playlist Web</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>Playlist Web</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <style>
-        /* ===== GLOBAL ===== */
-        * { box-sizing: border-box; }
-        body.app-body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #e0e0e0;
-            display: flex;
-        }
+  <style>
+    /* ===== GLOBAL ===== */
+    * { box-sizing: border-box; }
+    body.app-body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
+      display: flex;
+    }
 
-        /* ===== SIDEBAR ===== */
-        .sidebar {
-            width: 220px;
-            background-color: #1a1a1a;
-            border-right: 1px solid #2a2a2a;
-            height: 100vh;
-            padding: 20px 16px;
-            position: fixed;
-            left: 0;
-            top: 0;
-        }
-        .sidebar__username { font-size: 18px; font-weight: bold; margin-bottom: 24px; }
-        .sidebar__menu { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px; }
-        .sidebar__menu a {
-            text-decoration: none; color: #d0d0d0;
-            padding: 8px; border-radius: 4px; display: block;
-        }
-        .sidebar__menu a:hover { background-color: #2b2b2b; color: #fff; }
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 220px;
+      background-color: #1a1a1a;
+      border-right: 1px solid #2a2a2a;
+      height: 100vh;
+      padding: 20px 16px;
+      position: fixed;
+      left: 0;
+      top: 0;
+    }
+    .sidebar__username { font-size: 18px; font-weight: bold; margin-bottom: 24px; }
+    .sidebar__menu { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+    .sidebar__menu a {
+      text-decoration: none; color: #d0d0d0;
+      padding: 8px; border-radius: 4px; display: block;
+    }
+    .sidebar__menu a:hover { background-color: #2b2b2b; color: #fff; }
 
-        /* ===== MAIN PAGE ===== */
-        .page {
-            margin-left: 220px;
-            width: 100%;
-            padding: 24px 16px 40px;
+    /* ===== MAIN PAGE ===== */
+    .page {
+      margin-left: 220px;
+      width: 100%;
+      padding: 24px 16px 40px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .page__title {
+      text-align: center;
+      font-size: 34px;
+      letter-spacing: 2px;
+      margin: 0 0 20px;
+    }
+    .hero {
+      display: flex;
+      justify-content: center;
+      margin-top: auto;
+      margin-bottom: auto;
+    }
 
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .page__title {
-            text-align: center;
-            font-size: 34px;
-            letter-spacing: 2px;
-            margin: 0 0 20px;
-        }
-        .hero {
-            display: flex;
-            justify-content: center;
+    /* ===== HERO (CARD CAROUSEL) ===== */
+    :root {
+      /* 간격 조절 */
+      --hero-gap-near: 60%;
+      --hero-gap-far: 120%;
 
-            margin-top: auto;
-            margin-bottom: auto;
-        }
+      /* 크기감 */
+      --hero-scale-center: 1;
+      --hero-scale-near: 0.86;
+      --hero-scale-far: 0.72;
 
-        /* ===== HERO (CARD CAROUSEL) ===== */
-/* ===== HERO (CARD CAROUSEL) ===== */
-:root {
-    /* 간격 조절 */
-    --hero-gap-near: 60%;
-    --hero-gap-far: 120%;
+      /* 흐림 정도 */
+      --hero-blur-near: 0.9px;
+      --hero-blur-far: 1.25px;
 
-    /* 크기감 */
-    --hero-scale-center: 1;
-    --hero-scale-near: 0.86;
-    --hero-scale-far: 0.72;
+      /* 밝기(어둡기) 값 */
+      --hero-dim-center: 1;
+      --hero-dim-near: 0.8;
+      --hero-dim-far: 0.6;
+    }
 
-    /* 흐림 정도 */
-    --hero-blur-near: 0.9px;
-    --hero-blur-far: 1.25px;
+    /* HERO 컨테이너 (배경 박스 크게, 카드가 튀어나오지 않도록 hidden) */
+    .hero__stage {
+      width: min(1200px, 96vw);
+      height: clamp(320px, 42vw, 520px);
+      background:
+        radial-gradient(circle at 20% 20%, rgb(255, 95, 42), transparent 60%),
+        radial-gradient(circle at 20% 20%, rgba(126, 56, 255, 0.66), transparent 60%),
+        linear-gradient(140deg, #1f1f21 0%, #32386a 50%, #240f43 90%);
+      border: 1px solid #2a2a2a;
+      border-radius: 28px;
+      position: relative;
+      overflow: hidden;
+      padding: 28px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-    /* 밝기(어둡기) 값 */
-    --hero-dim-center: 1;
-    --hero-dim-near: 0.8;
-    --hero-dim-far: 0.6;
-}
+    /* 중앙에 보이는 외곽 박스 (옵션) */
+    .hero__outline {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(680px, 72%);
+      height: min(420px, 78%);
+      border-radius: 24px;
+      border: 1px dashed rgba(255,255,255,0.06);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.35) inset;
+      pointer-events: none;
+      z-index: 2; /* 카드들이 이 위에 올라오도록 낮은 z-index */
+    }
 
-/* HERO 컨테이너 (배경 박스 크게, 카드가 튀어나오지 않도록 hidden) */
-.hero__stage {
-    width: min(1200px, 96vw);
-    height: clamp(320px, 42vw, 520px);
-    background:
-    radial-gradient(circle at 20% 20%, rgb(255, 95, 42), transparent 60%),
-    radial-gradient(circle at 20% 20%, rgba(126, 56, 255, 0.66), transparent 60%),
-    linear-gradient(140deg, #1f1f21 0%, #32386a 50%, #240f43 90%);
+    /* .hero__rail는 카드 배치를 돕는 레이어 (터치/이벤트는 카드만 받음) */
+    .hero__rail {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+    }
 
-    border: 1px solid #2a2a2a;
-    border-radius: 28px;
-    position: relative;
-    overflow: hidden;           /* 카드가 배경 밖으로 튀어나오지 않도록 변경 */
-    padding: 28px 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* 중앙에 보이는 외곽 박스 (카드 그룹의 중심 아웃라인) */
-.hero__outline {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    /* 너비/높이는 반응형으로 조정 (필요시 값 수정) */
-    width: min(680px, 72%);
-    height: min(420px, 78%);
-    border-radius: 24px;
-    border: 1px dashed rgba(255,255,255,0.06);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.35) inset;
-    pointer-events: none;
-    z-index: 2; /* 카드들이 이 위에 올라오도록 낮은 z-index */
-}
-
-/* .hero__rail는 카드 배치를 돕는 레이어 (터치/이벤트는 카드만 받음) */
-.hero__rail {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    pointer-events: none;
-}
-
-/* 카드: 정사각 비율(1:1)으로 변경, 반응형 유지 */
-.hero__card {
-    position: absolute;
-    /* 너비 기반으로 크기 결정하고 aspect-ratio로 1:1 유지 */
-    width: clamp(220px, 28vw, 360px);
-    aspect-ratio: 1 / 1;            /* <-- 핵심: 정확한 1:1 비율 */
-    border-radius: 20px;
-    overflow: hidden;
-
-    /* 약간 더 강한 그림자 */
-    box-shadow:
+    /* 카드: 정사각 비율(1:1) */
+    .hero__card {
+      position: absolute;
+      width: clamp(220px, 28vw, 360px);
+      aspect-ratio: 1 / 1;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow:
         0px 22px 44px rgba(0, 0, 0, 0.85),
         0px 10px 20px rgba(0,0,0,1);
-
-    transition: transform 0.45s cubic-bezier(.2,.9,.2,1), filter 0.45s ease, z-index 0.2s ease;
-    cursor: pointer;
-    pointer-events: auto;
-
-    /* 카드는 항상 수직 중앙에 위치하도록 top 기준 설정.
-       (transform에서 translateY(-50%)를 각 포지션 클래스에 포함) */
-    top: 50%;
-}
-
-/* 카드 이미지: cover 유지 */
-.hero__card img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-}
-
-/* --------------------------------------------------------------
-   포지션별 transform: translateX(…) translateY(-50%) scale(…)
-   (translateY(-50%)로 수직 중앙 정렬을 보장)
--------------------------------------------------------------- */
-
-/* 중앙 카드 */
-.pos-center {
-    transform: translateX(0) translateY(-50%) scale(calc(var(--hero-scale-center) * 1.02));
-    z-index: 6;
-    filter: brightness(var(--hero-dim-center));
-}
-
-/* near 카드 (좌/우 1열) */
-.pos-near-left,
-.pos-near-right {
-    transform: translateX(var(--_nearX)) translateY(-50%) scale(var(--hero-scale-near));
-    z-index: 5;
-    filter: brightness(var(--hero-dim-near)) blur(var(--hero-blur-near));
-}
-
-/* far 카드 (좌/우 2열) */
-.pos-far-left,
-.pos-far-right {
-    transform: translateX(var(--_farX)) translateY(-50%) scale(var(--hero-scale-far));
-    z-index: 4;
-    filter: brightness(var(--hero-dim-far)) blur(var(--hero-blur-far));
-}
-
-/* X축 이동 값 */
-.pos-near-left  { --_nearX: calc(-1 * var(--hero-gap-near)); }
-.pos-near-right { --_nearX: var(--hero-gap-near); }
-
-.pos-far-left   { --_farX: calc(-1 * var(--hero-gap-far)); }
-.pos-far-right  { --_farX: var(--hero-gap-far); }
-
-/* HERO와 PLAYLIST 사이 공간 */
-.hero-message {
-    margin: 40px 0; /* 위아래 간격 */
-    text-align: center;
-    font-size: 22px;
-    font-weight: bold;
-    color: #ff7f50; /* 강조 색상 */
-    letter-spacing: 1px;
-    font-family: 'Noto Sans KR', 'Arial', sans-serif; /* 원하는 글꼴 추가 */
-}
-
-
-
-/* ===== PLAYLIST LIST ===== */
-.playlist-list { list-style: none; padding: 0; margin: 0; }
-.playlist-list__item {
-    background-color: #1e1e1e;
-    border: 1px solid #2c2c2c;
-    padding: 14px;
-    border-radius: 6px;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
-.playlist-list__thumb img {
-    width: 60px; height: 60px; object-fit: cover; border-radius: 4px;
+      transition: transform 0.45s cubic-bezier(.2,.9,.2,1), filter 0.45s ease, z-index 0.2s ease;
+      cursor: pointer;
+      pointer-events: auto;
+      top: 50%;
     }
-.playlist-list__title a { color: #fff; text-decoration: none; }
-.playlist-list__title a:hover { text-decoration: underline; }
-.empty-state {
-    padding: 16px;
-    background: #1e1e1e;
-    border: 1px solid #2c2c2c;
-    border-radius: 6px;
+    .hero__card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      transition: filter .25s ease;
+    }
+
+    /* 제목 라벨 (기본 숨김) */
+    .hero__card .hero__label {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(0.98);
+      padding: 10px 14px;
+      border-radius: 5px;
+      background: rgba(0, 0, 0, 0.55);
+      color: #fff;
+      font-weight: 700;
+      font-size: clamp(14px, 2.4vw, 18px);
+      letter-spacing: .2px;
+      text-align: center;
+      max-width: 88%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease, transform .25s ease, background .25s ease;
+      backdrop-filter: blur(4px);
+    }
+
+    /* 중앙 카드 */
+    .pos-center {
+      transform: translateX(0) translateY(-50%) scale(calc(var(--hero-scale-center) * 1.02));
+      z-index: 6;
+      filter: brightness(var(--hero-dim-center));
+    }
+    /* near 카드 (좌/우 1열) */
+    .pos-near-left,
+    .pos-near-right {
+      transform: translateX(var(--_nearX)) translateY(-50%) scale(var(--hero-scale-near));
+      z-index: 5;
+      filter: brightness(var(--hero-dim-near)) blur(var(--hero-blur-near));
+    }
+    /* far 카드 (좌/우 2열) */
+    .pos-far-left,
+    .pos-far-right {
+      transform: translateX(var(--_farX)) translateY(-50%) scale(var(--hero-scale-far));
+      z-index: 4;
+      filter: brightness(var(--hero-dim-far)) blur(var(--hero-blur-far));
+    }
+    /* X축 이동 값 */
+    .pos-near-left  { --_nearX: calc(-1 * var(--hero-gap-near)); }
+    .pos-near-right { --_nearX: var(--hero-gap-near); }
+    .pos-far-left   { --_farX: calc(-1 * var(--hero-gap-far)); }
+    .pos-far-right  { --_farX: var(--hero-gap-far); }
+
+    /* 중앙 카드 호버 시: 이미지 어둡게 + 라벨 표시 */
+    .hero__card.pos-center:hover img {
+      filter: brightness(0.45) saturate(0.98) contrast(1.05);
+    }
+    .hero__card.pos-center:hover .hero__label {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.02);
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    /* HERO와 PLAYLIST 사이 공간 */
+    .hero-message {
+      margin: 40px 0;
+      text-align: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: #ff7f50;
+      letter-spacing: 1px;
+      font-family: 'Noto Sans KR', 'Arial', sans-serif;
+    }
+
+    /* ===== PLAYLIST LIST ===== */
+    .playlist-list { list-style: none; padding: 0px; margin: 00px; }
+    .playlist-list__item {
+      background-color: #1e1e1e;
+      border: 1px solid #2c2c2c;
+      padding: 10px;
+      border-radius: 6px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .playlist-list__thumb img {
+      width: 60px; height: 60px; object-fit: cover; border-radius: 4px;
+    }
+    .playlist-list__title a { color: #fff; text-decoration: none; }
+    .playlist-list__title a:hover { text-decoration: underline; }
+    .empty-state {
+      padding: 16px;
+      background: #1e1e1e;
+      border: 1px solid #2c2c2c;
+      border-radius: 6px;
+    }
+    .playlist-list {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 0 12px;   /* 화면 끝에 딱 붙는 것 방지 */
 }
-    </style>
+
+  </style>
 </head>
 
 <body class="app-body">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    {% if session.get('user_id') %}
+      <div class="sidebar__username">{{ session['username'] }} 님</div>
+    {% else %}
+      <div class="sidebar__username">Guest</div>
+    {% endif %}
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        {% if session.get('user_id') %}
-            <div class="sidebar__username">{{ session['username'] }} 님</div>
-        {% else %}
-            <div class="sidebar__username">Guest</div>
-        {% endif %}
+    <ul class="sidebar__menu">
+      {% if session.get('user_id') %}
+        <li><a href="{{ url_for('logout') }}">로그아웃</a></li>
+      {% else %}
+        <li><a href="{{ url_for('login') }}">로그인</a></li>
+      {% endif %}
 
-        <ul class="sidebar__menu">
-            {% if session.get('user_id') %}
-                <li><a href="{{ url_for('logout') }}">로그아웃</a></li>
-            {% else %}
-                <li><a href="{{ url_for('login') }}">로그인</a></li>
-            {% endif %}
+      <li><a href="{{ url_for('index') }}">플레이리스트</a></li>
 
-            <li><a href="{{ url_for('index') }}">플레이리스트</a></li>
+      {% if session.get('user_id') %}
+        <li><a href="{{ url_for('create_playlist') }}">+ 플레이리스트 추가</a></li>
+      {% endif %}
 
-            {% if session.get('user_id') %}
-                <li><a href="{{ url_for('create_playlist') }}">+ 플레이리스트 추가</a></li>
-            {% endif %}
+      {% if session.get('is_admin') %}
+        <li><a href="{{ url_for('manage_songs') }}">🎛 노래 관리</a></li>
+      {% endif %}
+    </ul>
+  </aside>
 
-            {% if session.get('is_admin') %}
-                <li><a href="{{ url_for('manage_songs') }}">🎛 노래 관리</a></li>
-            {% endif %}
-        </ul>
-    </aside>
+  <!-- MAIN -->
+  <div class="page">
+    <h1 class="page__title">PLAYLIST CARTI</h1>
 
-    <!-- MAIN -->
-    <div class="page">
-        <h1 class="page__title">PLAYLIST CARTI</h1>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero__stage" id="heroStage"></div>
+    </section>
 
-        <!-- HERO -->
-        <section class="hero">
-            <div class="hero__stage" id="heroStage"></div>
-        </section>
-
-        <!-- 하루마다 랜덤 플레이리스트 문구 -->
-        <div class="hero-message">
-            🎵 DAILY RANDOM PLAYLIST 🎵
-        </div>
-
-
-        <!-- PLAYLIST LIST -->
-        <main class="page__content">
-            {% if playlists %}
-                <ul class="playlist-list">
-                    {% for pl in playlists %}
-                        <li class="playlist-list__item">
-                            {% if pl["display_cover_url"] %}
-                                <div class="playlist-list__thumb">
-                                    <img src="{{ pl['display_cover_url'] }}">
-                                </div>
-                            {% endif %}
-                            <div>
-                                <h2 class="playlist-list__title">
-                                    <a href="{{ url_for('view_playlist', playlist_id=pl['playlist_id']) }}">
-                                        {{ pl["title"] or "제목 없음" }}
-                                    </a>
-                                </h2>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <div class="empty-state">등록된 플레이리스트가 없습니다.</div>
-            {% endif %}
-        </main>
+    <!-- 하루마다 랜덤 플레이리스트 문구 -->
+    <div class="hero-message">
+      🎵 DAILY RANDOM PLAYLIST 🎵
     </div>
 
-    <!-- PASS PLAYLIST DATA TO JS -->
-    <script>
-        const HERO_ITEMS = [
-            {% for pl in playlists %}
-            {
-                id: {{ pl['playlist_id'] }},
-                img: "{{ (pl['display_cover_url'] or '')|e }}",
-                url: "{{ url_for('view_playlist', playlist_id=pl['playlist_id']) }}"
-            },
-            {% endfor %}
-        ];
-        const HERO_PLACEHOLDER = "https://picsum.photos/600/600?random=1";
-    </script>
+    <!-- PLAYLIST LIST -->
+    <main class="page__content">
+      {% if playlists %}
+        <ul class="playlist-list">
+          {% for pl in playlists %}
+          <li class="playlist-list__item">
+            {% if pl["display_cover_url"] %}
+              <div class="playlist-list__thumb">
+                <img src="{{ pl['display_cover_url'] }}">
+              </div>
+            {% endif %}
+            <div>
+              <h2 class="playlist-list__title">
+                <a href="{{ url_for('view_playlist', playlist_id=pl['playlist_id']) }}">
+                  {{ pl["title"] or "제목 없음" }}
+                </a>
+              </h2>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty-state">등록된 플레이리스트가 없습니다.</div>
+      {% endif %}
+    </main>
+  </div>
 
-    <!-- HERO JS -->
-<script>
-(function () {
-  const stage = document.getElementById("heroStage");
-  const rail  = document.createElement("div");
-  rail.className = "hero__rail";
-  stage.appendChild(rail);
+  <!-- PASS PLAYLIST DATA TO JS -->
+  <script>
+    const HERO_ITEMS = [
+      {% for pl in playlists %}
+      {
+        id: {{ pl['playlist_id'] }},
+        img: "{{ (pl['display_cover_url'] or '')|e }}",
+        url: "{{ url_for('view_playlist', playlist_id=pl['playlist_id']) }}",
+        title: "{{ (pl['title'] or '제목 없음')|e }}"
+      },
+      {% endfor %}
+    ];
+    const HERO_PLACEHOLDER = "https://picsum.photos/600/600?random=1";
+  </script>
 
-  // 데이터 준비
-  const raw = (HERO_ITEMS || []).map(it => ({
-    ...it,
-    img: it.img && it.img.trim() ? it.img : HERO_PLACEHOLDER
-  }));
-  if (raw.length === 0) return;
+  <!-- HERO JS -->
+  <script>
+  (function () {
+    const stage = document.getElementById("heroStage");
+    const rail  = document.createElement("div");
+    rail.className = "hero__rail";
+    stage.appendChild(rail);
 
-  // 랜덤 섞고 최소 5개 확보
-  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]] } return a; }
-  const items = shuffle([...raw]);
-  while (items.length < 5) items.push(items[items.length % items.length]);
+    // 데이터 준비
+    const raw = (HERO_ITEMS || []).map(it => ({
+      ...it,
+      img: it.img && it.img.trim() ? it.img : HERO_PLACEHOLDER
+    }));
+    if (raw.length === 0) return;
 
-  // 처음에 보여줄 5장
-  const visible = items.slice(0, 5);
-
-  // 위치 클래스(시각적 순서)
-  const POS = ["pos-far-left","pos-near-left","pos-center","pos-near-right","pos-far-right"];
-
-  // 카드 DOM 생성(단 5개만 만들고 계속 재사용)
-  const cards = visible.map((data, i) => {
-    const el = document.createElement("div");
-    el.className = `hero__card ${POS[i]}`;
-    el.dataset.id = data.id;
-    el.dataset.url = data.url;
-
-    const img = document.createElement("img");
-    img.src = data.img; img.alt = "cover";
-    el.appendChild(img);
-
-    el.addEventListener("click", () => {
-      const idx = cards.indexOf(el);
-
-      if (POS[idx] === "pos-center") {
-        // 중앙만 페이지 이동
-        if (data.url) window.location.href = data.url;
-        return;
+    // 랜덤 섞기
+    function shuffle(a){
+      for(let i=a.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [a[i],a[j]]=[a[j],a[i]];
       }
-
-      // 좌/우 클릭 시: 해당 카드가 중앙(index 2)으로 오도록 클래스만 재배치
-      slideToCenter(idx);
-    });
-
-    rail.appendChild(el);
-    return el;
-  });
-
-  // 현재 화면에 보이는 데이터 배열(카드 노드와 1:1)
-  let state = [...visible];
-
-  // idx의 카드를 중앙(2)로 슬라이드: 클래스만 회전 → transition으로 부드럽게 이동
-  function slideToCenter(idx) {
-    // 필요한 방향으로 state와 cards를 회전
-    while (idx !== 2) {
-      if (idx < 2) {
-        // 왼쪽 클릭 → 오른쪽으로 한 칸 밀기 (배열을 오른쪽으로 회전)
-        state.unshift(state.pop());
-        cards.unshift(cards.pop());
-        idx++;
-      } else {
-        // 오른쪽 클릭 → 왼쪽으로 한 칸 밀기
-        state.push(state.shift());
-        cards.push(cards.shift());
-        idx--;
-      }
+      return a;
     }
-    // 회전된 cards 배열의 각 요소에 새 위치 클래스 부여 (DOM은 그대로, 클래스만 바뀜)
-    cards.forEach((el, i) => {
-      // 기존 위치 클래스 제거 후 새 클래스 부여
-      el.classList.remove("pos-far-left","pos-near-left","pos-center","pos-near-right","pos-far-right");
-      el.classList.add(POS[i]);
+    const items = shuffle([...raw]);
+
+    // 최소 5장 확보 (원본을 순환하며 채움)
+    while (items.length < 5) {
+      items.push(raw[items.length % raw.length]);
+    }
+
+    // 처음에 보여줄 5장
+    const visible = items.slice(0, 5);
+
+    // 위치 클래스(시각적 순서)
+    const POS = ["pos-far-left","pos-near-left","pos-center","pos-near-right","pos-far-right"];
+
+    // 카드 DOM 생성(단 5개만 만들고 계속 재사용)
+    const cards = visible.map((data, i) => {
+      const el = document.createElement("div");
+      el.className = `hero__card ${POS[i]}`;
+      el.dataset.id = data.id;
+      el.dataset.url = data.url;
+
+      const img = document.createElement("img");
+      img.src = data.img;
+      img.alt = "cover";
+      el.appendChild(img);
+
+      // 🔹 제목 라벨 추가 (hover 시 중앙에 표시)
+      const label = document.createElement("div");
+      label.className = "hero__label";
+      label.textContent = (data.title || "제목 없음").trim();
+      el.appendChild(label);
+
+      el.addEventListener("click", () => {
+        const idx = cards.indexOf(el);
+
+        if (POS[idx] === "pos-center") {
+          // 중앙만 페이지 이동
+          if (data.url) window.location.href = data.url;
+          return;
+        }
+
+        // 좌/우 클릭 시: 해당 카드가 중앙(index 2)으로 오도록 클래스만 재배치
+        slideToCenter(idx);
+      });
+
+      rail.appendChild(el);
+      return el;
     });
-  }
-})();
-</script>
 
+    // 현재 화면에 보이는 데이터 배열(카드 노드와 1:1)
+    let state = [...visible];
 
-
+    // idx의 카드를 중앙(2)로 슬라이드: 클래스만 회전 → transition으로 부드럽게 이동
+    function slideToCenter(idx) {
+      while (idx !== 2) {
+        if (idx < 2) {
+          // 왼쪽 클릭 → 오른쪽으로 한 칸 밀기
+          state.unshift(state.pop());
+          cards.unshift(cards.pop());
+          idx++;
+        } else {
+          // 오른쪽 클릭 → 왼쪽으로 한 칸 밀기
+          state.push(state.shift());
+          cards.push(cards.shift());
+          idx--;
+        }
+      }
+      // 회전된 cards 배열의 각 요소에 새 위치 클래스 부여
+      cards.forEach((el, i) => {
+        el.classList.remove("pos-far-left","pos-near-left","pos-center","pos-near-right","pos-far-right");
+        el.classList.add(POS[i]);
+      });
+    }
+  })();
+  </script>
 </body>
 </html>

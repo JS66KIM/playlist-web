@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
   <meta charset="UTF-8">
   <title>플레이리스트 {{ '수정' if mode == 'edit' else '만들기' }}</title>
@@ -61,301 +60,120 @@
       flex: 1 1 auto;
     }
 
-
+    /* 상단 헤더 + 상단 저장 버튼 */
     .page__header {
       margin-bottom: 16px;
+      position: sticky; /* 필요 없으면 이 두 줄 삭제 */
+      top: 0;
+      z-index: 20;
+      background: #121212;
+      padding-top: 6px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #222;
     }
-
     .page__title {
       margin: 0 0 8px;
       font-size: 24px;
       color: #ffffff;
     }
-
-    .page__back {
-      font-size: 14px;
-      margin-bottom: 24px;
+    .page__actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
     }
 
-    .page__back a {
-      text-decoration: none;
-      color: #8ab4f8;
-    }
-
-    .page__back a:hover {
-      text-decoration: underline;
-    }
+    .page__back { font-size: 14px; margin-bottom: 24px; }
+    .page__back a { text-decoration: none; color: #8ab4f8; }
+    .page__back a:hover { text-decoration: underline; }
 
     /* SECTION */
-    .section {
-      margin-bottom: 32px;
-    }
-
-    .section__title {
-      margin: 0 0 12px;
-      font-size: 18px;
-      color: #ffffff;
-    }
+    .section { margin-bottom: 32px; }
+    .section__title { margin: 0 0 12px; font-size: 18px; color: #ffffff; }
 
     /* SEARCH */
-    .search {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: center;
-    }
-
+    .search { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
     .search__input {
-      flex: 1;
-      min-width: 220px;
-      padding: 8px 10px;
-      border-radius: 4px;
-      border: 1px solid #333;
-      background-color: #1e1e1e;
-      color: #e0e0e0;
-      box-sizing: border-box;
+      flex: 1; min-width: 220px; padding: 8px 10px; border-radius: 4px;
+      border: 1px solid #333; background-color: #1e1e1e; color: #e0e0e0;
     }
-
     .search__button {
-      padding: 8px 16px;
-      border-radius: 4px;
-      border: none;
-      cursor: pointer;
-      background-color: #4dabf7;
-      color: #000;
-      font-size: 14px;
-      font-weight: 600;
-      transition: 0.15s;
+      padding: 8px 16px; border-radius: 4px; border: none; cursor: pointer;
+      background-color: #4dabf7; color: #000; font-size: 14px; font-weight: 600; transition: .15s;
     }
-
-    .search__button:hover {
-      background-color: #1d7bd7;
-    }
+    .search__button:hover { background-color: #1d7bd7; }
 
     /* FORM */
-    .form {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    .form { display: flex; flex-direction: column; gap: 16px; }
+    .form__group { display: flex; flex-direction: column; gap: 6px; max-width: 520px; }
+    .form__label { font-size: 14px; font-weight: 600; color: #ffffff; }
+    .form__input, .form__textarea {
+      padding: 8px 10px; border-radius: 4px; border: 1px solid #333;
+      background-color: #1e1e1e; color: #e0e0e0; font-size: 14px;
     }
-
-    .form__group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      max-width: 520px;
-    }
-
-    .form__label {
-      font-size: 14px;
-      font-weight: 600;
-      color: #ffffff;
-    }
-
-    .form__input,
-    .form__textarea {
-      padding: 8px 10px;
-      border-radius: 4px;
-      border: 1px solid #333;
-      background-color: #1e1e1e;
-      color: #e0e0e0;
-      font-size: 14px;
-      box-sizing: border-box;
-    }
-
-    .form__textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-
+    .form__textarea { resize: vertical; min-height: 80px; }
     .form__submit {
       align-self: flex-start;
-      padding: 10px 18px;
-      border-radius: 4px;
-      border: none;
-      cursor: pointer;
-      background-color: #28a745;
-      color: #000;
-      font-size: 15px;
-      font-weight: 600;
-      transition: 0.15s;
+      padding: 10px 18px; border-radius: 4px; border: none; cursor: pointer;
+      background-color: #28a745; color: #000; font-size: 15px; font-weight: 600; transition: .15s;
     }
-
-    .form__submit[disabled] {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .form__submit:hover:not([disabled]) {
-      background-color: #1c7f33;
-    }
+    .form__submit[disabled] { opacity: .5; cursor: not-allowed; }
+    .form__submit:hover:not([disabled]) { background-color: #1c7f33; }
 
     /* ROW: 폼 왼쪽(입력) + 오른쪽(미리보기) 배치 */
-    .cover-row {
-      display: flex;
-      gap: 18px;
-      align-items: start;
-      flex-wrap: wrap;
-    }
-
-    .cover-row__left {
-      flex: 1 1 420px; /* 왼쪽은 가변, 최소 너비 확보 */
-      min-width: 260px;
-    }
-
-    .cover-row__right {
-      width: 220px; /* 미리보기 박스 크기 (정사각) */
-      min-width: 140px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transform: translateY(7px);
-    }
+    .cover-row { display: flex; gap: 18px; align-items: start; flex-wrap: wrap; }
+    .cover-row__left { flex: 1 1 420px; min-width: 260px; }
+    .cover-row__right { width: 220px; min-width: 140px; display: flex; align-items: center; justify-content: center; transform: translateY(7px); }
 
     /* COVER PREVIEW (1:1) */
     .cover-preview {
-      width: 220px;
-      aspect-ratio: 1 / 1;
-      border-radius: 8px;
+      width: 220px; aspect-ratio: 1/1; border-radius: 8px;
       background: linear-gradient(180deg,#141414,#1c1c1c);
-      border: 1px solid #2a2a2a;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      position: relative;
+      border: 1px solid #2a2a2a; display: grid; place-items: center;
+      overflow: hidden; position: relative;
     }
-
-    .cover-preview img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .cover-placeholder {
-      color: #9e9e9e;
-      font-size: 13px;
-      text-align: center;
-      padding: 8px;
-    }
+    .cover-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cover-placeholder { color: #9e9e9e; font-size: 13px; text-align: center; padding: 8px; }
 
     /* 로딩 오버레이 */
     .preview-overlay {
-      position: absolute;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,0.35);
-      color: #fff;
-      font-size: 13px;
-      z-index: 5;
+      position: absolute; inset: 0; display: none;
+      align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.35); color: #fff; font-size: 13px; z-index: 5;
     }
-
-    .preview-overlay.show {
-      display: flex;
-    }
-
+    .preview-overlay.show { display: flex; }
     .spinner {
-      width: 28px;
-      height: 28px;
-      border: 3px solid rgba(255,255,255,0.12);
-      border-top-color: rgba(255,255,255,0.9);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-right: 8px;
+      width: 28px; height: 28px; border: 3px solid rgba(255,255,255,0.12);
+      border-top-color: rgba(255,255,255,0.9); border-radius: 50%; animation: spin .8s linear infinite; margin-right: 8px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-
     .preview-error {
-      position: absolute;
-      bottom: 6px;
-      left: 6px;
-      right: 6px;
-      padding: 6px 8px;
-      background: rgba(255, 60, 60, 0.12);
-      color: #ff8b8b;
-      font-size: 12px;
-      border-radius: 6px;
-      text-align: center;
-      display: none;
-      z-index: 6;
+      position: absolute; bottom: 6px; left: 6px; right: 6px; padding: 6px 8px;
+      background: rgba(255,60,60,0.12); color: #ff8b8b; font-size: 12px;
+      border-radius: 6px; text-align: center; display: none; z-index: 6;
     }
     .preview-error.show { display: block; }
 
     /* TABLE */
-    .table-wrapper {
-      background-color: #1e1e1e;
-      border-radius: 6px;
-      overflow: hidden;
-      border: 1px solid #2a2a2a;
-    }
-
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-      color: #dcdcdc;
-    }
-
-    .table thead {
-      background-color: #2a2a2a;
-      color: #ffffff;
-    }
-
-    .table th,
-    .table td {
-      padding: 8px 10px;
-      border-bottom: 1px solid #2f2f2f;
-      text-align: left;
-    }
-
-    .table th:first-child,
-    .table td:first-child,
-    .table th:nth-child(2),
-    .table td:nth-child(2) {
-      text-align: center;
-      width: 60px;
-    }
-
-    .table tbody tr:last-child td {
-      border-bottom: none;
-    }
-
-    .cover-thumb {
-      width: 40px;
-      height: 40px;
-      object-fit: cover;
-      border-radius: 4px;
-    }
+    .table-wrapper { background-color: #1e1e1e; border-radius: 6px; overflow: hidden; border: 1px solid #2a2a2a; }
+    .table { width: 100%; border-collapse: collapse; font-size: 14px; color: #dcdcdc; }
+    .table thead { background-color: #2a2a2a; color: #ffffff; }
+    .table th, .table td { padding: 8px 10px; border-bottom: 1px solid #2f2f2f; text-align: left; }
+    .table th:first-child, .table td:first-child, .table th:nth-child(2), .table td:nth-child(2) { text-align: center; width: 60px; }
+    .table tbody tr:last-child td { border-bottom: none; }
+    .cover-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; }
 
     /* EMPTY STATE */
     .empty-state {
-      font-size: 14px;
-      background-color: #1e1e1e;
-      padding: 16px 14px;
-      border-radius: 6px;
-      border: 1px solid #2a2a2a;
-      color: #bdbdbd;
+      font-size: 14px; background-color: #1e1e1e; padding: 16px 14px;
+      border-radius: 6px; border: 1px solid #2a2a2a; color: #bdbdbd;
     }
-
-    .empty-state a {
-      color: #8ab4f8;
-      text-decoration: none;
-    }
-
-    .empty-state a:hover {
-      text-decoration: underline;
-    }
+    .empty-state a { color: #8ab4f8; text-decoration: none; }
+    .empty-state a:hover { text-decoration: underline; }
 
     /* ERROR */
-    .error-msg {
-      color: #ff6b6b;
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
+    .error-msg { color: #ff6b6b; font-size: 13px; margin-bottom: 8px; }
 
-    /* 반응형: 화면 좁을 때 미리보기 아래로 내림 */
+    /* 반응형 */
     @media (max-width: 720px) {
       .cover-row { gap: 12px; }
       .cover-row__right { width: 160px; }
@@ -375,19 +193,19 @@
 
     <ul class="sidebar__menu">
       {% if session.get('user_id') %}
-      <li><a href="{{ url_for('logout') }}">로그아웃</a></li>
+        <li><a href="{{ url_for('logout') }}">로그아웃</a></li>
       {% else %}
-      <li><a href="{{ url_for('login') }}">로그인</a></li>
+        <li><a href="{{ url_for('login') }}">로그인</a></li>
       {% endif %}
 
       <li><a href="{{ url_for('index') }}">플레이리스트</a></li>
 
       {% if session.get('user_id') %}
-      <li><a href="{{ url_for('create_playlist') }}">+ 플레이리스트 추가</a></li>
+        <li><a href="{{ url_for('create_playlist') }}">+ 플레이리스트 추가</a></li>
       {% endif %}
 
       {% if session.get('is_admin') %}
-      <li><a href="{{ url_for('manage_songs') }}">🎛 노래 관리</a></li>
+        <li><a href="{{ url_for('manage_songs') }}">🎛 노래 관리</a></li>
       {% endif %}
     </ul>
   </aside>
@@ -399,13 +217,23 @@
       <h1 class="page__title">
         {{ '플레이리스트 수정' if mode == 'edit' else '새 플레이리스트 만들기' }}
       </h1>
-      <!-- <p class="page__back">
-        <a href="{{ url_for('index') }}">← 플레이리스트 목록으로 돌아가기</a>
-      </p> -->
+
+      <!-- 상단 저장 버튼 (폼 외부) -->
+      <div class="page__actions">
+        <button
+          type="submit"
+          form="playlist-form"
+          name="action"
+          value="save"
+          class="form__submit form__submit--top"
+          id="save-button">
+          {{ '플레이리스트 수정 저장' if mode == 'edit' else '플레이리스트 저장' }}
+        </button>
+      </div>
     </header>
 
-    <!-- 폼 및 나머지 콘텐츠: 기존 내용 그대로 유지 -->
-    <form method="POST"
+    <!-- 폼 및 나머지 콘텐츠 -->
+    <form id="playlist-form" method="POST"
       action="{% if mode == 'edit' %}{{ url_for('edit_playlist', playlist_id=playlist_id) }}{% else %}{{ url_for('create_playlist') }}{% endif %}"
       class="form">
       
@@ -453,8 +281,7 @@
         </div>
       </section>
 
-
-      <!-- 1.5) 선택된 노래 (위쪽 테이블) -->
+      <!-- 선택된 노래 (위쪽 테이블) -->
       <section class="section">
         <h2 class="section__title">선택된 노래</h2>
 
@@ -497,19 +324,17 @@
         </div>
       </section>
 
-      <!-- 2) 노래 검색 -->
+      <!-- 노래 검색 -->
       <section class="section">
         <h2 class="section__title">노래 검색</h2>
         <div class="search">
           <input type="text" name="q" class="search__input" placeholder="제목/아티스트/앨범 검색"
             value="{{ search_query or '' }}">
-          <button type="submit" name="action" value="search" class="search__button">
-            검색
-          </button>
+          <button type="submit" name="action" value="search" class="search__button">검색</button>
         </div>
       </section>
 
-      <!-- 3) 노래 선택 (검색 결과 테이블) -->
+      <!-- 노래 선택 (검색 결과 테이블) -->
       <section class="section">
         <h2 class="section__title">노래 선택</h2>
 
@@ -530,8 +355,8 @@
               <tr data-song-id="{{ s['song_id'] }}">
                 <td>
                   <input type="checkbox" class="song-checkbox song-checkbox-bottom" name="song_ids"
-                    value="{{ s['song_id'] }}" data-song-id="{{ s['song_id'] }}" {% if selected_song_ids and
-                    s['song_id'] in selected_song_ids %}checked{% endif %}>
+                    value="{{ s['song_id'] }}" data-song-id="{{ s['song_id'] }}"
+                    {% if selected_song_ids and s['song_id'] in selected_song_ids %}checked{% endif %}>
                 </td>
                 <td>
                   {% if s['cover_url'] %}
@@ -547,13 +372,10 @@
           </table>
         </div>
 
-        <button type="submit" name="action" value="save" class="form__submit" id="save-button">
-          {{ '플레이리스트 수정 저장' if mode == 'edit' else '플레이리스트 저장' }}
-        </button>
+        <!-- ⛔️ 하단 저장 버튼 제거 (상단 헤더 버튼만 사용) -->
+
         {% else %}
-        <div class="empty-state">
-          검색 결과가 없습니다.
-        </div>
+        <div class="empty-state">검색 결과가 없습니다.</div>
         {% endif %}
       </section>
     </form>
@@ -579,41 +401,30 @@
     }
 
     // ====== 선택된 노래 테이블 실시간 동기화 ======
-
     function updateSelectedEmptyState() {
       const tbody = document.getElementById('selected-tbody');
       const wrapper = document.getElementById('selected-wrapper');
       const empty = document.getElementById('selected-empty');
-
       if (!tbody || !wrapper || !empty) return;
 
       const hasRows = tbody.querySelectorAll('tr').length > 0;
-      if (hasRows) {
-        wrapper.style.display = 'block';
-        empty.style.display = 'none';
-      } else {
-        wrapper.style.display = 'none';
-        empty.style.display = 'block';
-      }
+      if (hasRows) { wrapper.style.display = 'block'; empty.style.display = 'none'; }
+      else { wrapper.style.display = 'none'; empty.style.display = 'block'; }
     }
 
     function removeFromSelected(id) {
-      // 위쪽 테이블에서 제거
       const row = document.querySelector('.selected-row[data-song-id="' + id + '"]');
       if (row) {
         const topCb = row.querySelector('.song-checkbox-top');
         if (topCb) topCb.checked = false;
         row.remove();
       }
-      // 아래 테이블 체크도 해제
       const bottomCb = document.querySelector('.song-checkbox-bottom[data-song-id="' + id + '"]');
       if (bottomCb) bottomCb.checked = false;
-
       updateSelectedEmptyState();
     }
 
     function addToSelectedFromBottom(id) {
-      // 이미 위에 있으면 그냥 체크만 맞추고 종료
       const existingRow = document.querySelector('.selected-row[data-song-id="' + id + '"]');
       if (existingRow) {
         const topCb = existingRow.querySelector('.song-checkbox-top');
@@ -621,19 +432,11 @@
         updateSelectedEmptyState();
         return;
       }
-
       const bottomCb = document.querySelector('.song-checkbox-bottom[data-song-id="' + id + '"]');
-      if (!bottomCb) {
-        updateSelectedEmptyState();
-        return;
-      }
+      if (!bottomCb) { updateSelectedEmptyState(); return; }
       const bottomRow = bottomCb.closest('tr');
-      if (!bottomRow) {
-        updateSelectedEmptyState();
-        return;
-      }
+      if (!bottomRow) { updateSelectedEmptyState(); return; }
 
-      // 아래 행을 복제해서 위 테이블에 추가
       const clone = bottomRow.cloneNode(true);
       clone.classList.add('selected-row');
       clone.setAttribute('data-song-id', id);
@@ -658,10 +461,7 @@
       }
 
       const tbody = document.getElementById('selected-tbody');
-      if (tbody) {
-        tbody.appendChild(clone);
-      }
-
+      if (tbody) { tbody.appendChild(clone); }
       updateSelectedEmptyState();
     }
 
@@ -673,15 +473,12 @@
       const overlay = document.getElementById('previewOverlay');
       const errorBox = document.getElementById('coverPreviewError');
 
-      // helper: show placeholder
       function showPlaceholder() {
         img.style.display = 'none';
         img.src = '';
         placeholder.style.display = 'block';
         errorBox.classList.remove('show');
       }
-
-      // helper: show error
       function showError(text) {
         img.style.display = 'none';
         placeholder.style.display = 'block';
@@ -689,8 +486,6 @@
         errorBox.classList.add('show');
         overlay.classList.remove('show');
       }
-
-      // helper: show image
       function showImage(src) {
         overlay.classList.remove('show');
         errorBox.classList.remove('show');
@@ -698,38 +493,16 @@
         img.src = src;
         img.style.display = 'block';
       }
-
-      // attempt to load a URL and update preview (with loading + error handling)
       function updatePreview(url) {
         url = (url || '').trim();
-        if (!url) {
-          showPlaceholder();
-          return;
-        }
-
-        // show loading
+        if (!url) { showPlaceholder(); return; }
         overlay.classList.add('show');
         errorBox.classList.remove('show');
 
-        // preload with JS Image to catch load/error
         const pre = new Image();
-        pre.onload = function () {
-          showImage(url);
-        };
-        pre.onerror = function () {
-          showError('이미지 불러오기 실패 (유효한 이미지 URL인지 확인하세요)');
-        };
-
-        // set a timeout in case remote server hangs
         let timedOut = false;
-        const to = setTimeout(() => {
-          timedOut = true;
-          pre.src = ''; // cancel
-          showError('이미지 로드 시간 초과');
-        }, 8000);
+        const to = setTimeout(() => { timedOut = true; pre.src = ''; showError('이미지 로드 시간 초과'); }, 8000);
 
-        pre.src = url;
-        // on success or error we clear timeout in handlers:
         pre.onload = function () {
           if (timedOut) return;
           clearTimeout(to);
@@ -740,11 +513,10 @@
           clearTimeout(to);
           showError('이미지 불러오기 실패 (CORS 또는 잘못된 URL)');
         };
+        pre.src = url;
       }
 
       if (!input) return;
-
-      // Update on input (debounced) and on blur
       let timer = null;
       input.addEventListener('input', () => {
         clearTimeout(timer);
@@ -752,32 +524,24 @@
       });
       input.addEventListener('blur', () => updatePreview(input.value));
 
-      // Initialize from server-rendered value (if any)
       document.addEventListener('DOMContentLoaded', () => {
         const initial = input.value || "{{ cover_url_value or '' }}";
-        // If template inserted quotes or escaped values, this still works (empty string otherwise)
         updatePreview(initial);
       });
     })();
 
-    // ====== 기존 선택된 노래 로직 초기화 ======
+    // ====== 초기화 ======
     document.addEventListener('DOMContentLoaded', () => {
-      // 처음 로드 시: 서버에서 내려준 selected_songs 기준으로 보이기 상태 조정
       updateSelectedEmptyState();
 
-      // 아래 테이블(검색 결과) 체크박스 이벤트
       document.querySelectorAll('.song-checkbox-bottom').forEach(cb => {
         cb.addEventListener('change', () => {
           const id = cb.getAttribute('data-song-id');
-          if (cb.checked) {
-            addToSelectedFromBottom(id);
-          } else {
-            removeFromSelected(id);
-          }
+          if (cb.checked) addToSelectedFromBottom(id);
+          else removeFromSelected(id);
         });
       });
 
-      // 위 테이블(선택된 노래) 체크박스 이벤트 (서버에서 미리 내려준 경우)
       document.querySelectorAll('.song-checkbox-top').forEach(cb => {
         cb.addEventListener('change', () => {
           const id = cb.getAttribute('data-song-id');
@@ -794,5 +558,4 @@
     });
   </script>
 </body>
-
 </html>
