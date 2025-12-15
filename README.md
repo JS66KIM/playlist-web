@@ -16,4 +16,17 @@
 
 ---
 
-## 📂 Structure
+## Structure
+playlist-web/
+├─ app.py
+├─ database/
+│  └─ playlist.db
+├─ templates/        
+│  ├─ admin_login.html
+│  ├─ create_playlist.html
+│  ├─ index.html
+│  ├─ login.html
+│  ├─ login.html
+│  ├─ manage_songs.html
+│  └─ view_playlist.html
+└─ README.md
